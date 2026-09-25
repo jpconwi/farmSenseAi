@@ -1,6 +1,9 @@
 # Don't commit your real API key
 .streamlit/secrets.toml
 
+# AI result cache (regenerated automatically, machine-specific)
+data/ai_cache.json
+
 # Python
 __pycache__/
 *.pyc

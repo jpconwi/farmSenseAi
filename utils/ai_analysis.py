@@ -14,6 +14,7 @@ Beginner note:
 """
 
 import json
+import os
 import re
 import time
 
@@ -35,8 +36,9 @@ SEVERITIES = ["Low", "Moderate", "High"]
 # How many reports we bundle into a single API call. The free Gemini tier
 # allows only ~5 requests per minute, so bundling reports together (instead
 # of one request per report) is what keeps a 45-report dataset from
-# blowing through that quota.
-DEFAULT_GROUP_SIZE = 8
+# blowing through that quota. 15 keeps a typical ~45-report dataset to just
+# 3 calls total, comfortably under the 5/minute limit with no retry waits.
+DEFAULT_GROUP_SIZE = 15
 
 # How many times we retry a single API call if we get a 429 (rate limit)
 # error, and how long we wait between retries if Google doesn't tell us.
@@ -292,6 +294,49 @@ def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash"
             progress_callback((group_index + 1) / total_groups)
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# PERSISTENT (ON-DISK) CACHE
+# ---------------------------------------------------------------------------
+# st.session_state only lasts for one browser session - restart the app and
+# it's gone, so every restart re-analyzes the whole dataset again even
+# though the reports haven't changed. This on-disk cache fixes that: once a
+# report has been analyzed successfully, its result is saved to a small
+# JSON file and reused forever (until the report text or model changes).
+DEFAULT_CACHE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "ai_cache.json")
+
+
+def _cache_key(report_text: str, model: str) -> str:
+    """Build a stable string key for one (report, model) pair."""
+    return f"{model}::{report_text.strip()}"
+
+
+def load_disk_cache(cache_path: str = DEFAULT_CACHE_PATH) -> dict:
+    """
+    Loads the on-disk cache file into a dict of {cache_key: result}.
+    Returns an empty dict if the file doesn't exist yet or is corrupted -
+    a missing/bad cache should never crash the app, just mean a cache miss.
+    """
+    try:
+        with open(cache_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_disk_cache(cache: dict, cache_path: str = DEFAULT_CACHE_PATH) -> None:
+    """
+    Saves the cache dict to disk as JSON. Any failure here (e.g. read-only
+    filesystem on some hosting platforms) is swallowed - losing the cache
+    just means slower re-analysis next time, never a crash.
+    """
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(cache, f)
+    except Exception:
+        pass
 
 
 def build_dataset_summary(df, max_chars: int = 4000) -> str:

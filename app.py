@@ -33,6 +33,9 @@ from utils.ai_analysis import (
     build_dataset_summary,
     ask_chatbot,
     CATEGORIES,
+    load_disk_cache,
+    save_disk_cache,
+    _cache_key,
 )
 
 # ---------------------------------------------------------------------------
@@ -238,23 +241,20 @@ if filtered_df.empty:
     st.stop()
 
 if client is not None:
-    # Cache AI results per (report text, model) for the lifetime of the
-    # browser session. Without this, changing a sidebar filter reruns the
-    # whole script and re-analyzes every report from scratch every time,
-    # which is what burns through the free-tier rate limit in seconds.
-    #
-    # IMPORTANT: we only cache SUCCESSFUL results. If a report's analysis
-    # comes back with an error (e.g. a 429 rate-limit that survived all
-    # retries), we deliberately do NOT cache it - otherwise that one bad
-    # result would be replayed forever on every rerun, even after the
-    # quota resets a minute later, making the whole dashboard look
-    # permanently broken until you restart the app.
+    # Two layers of caching for AI results, keyed by (report text, model):
+    #   1. In-memory (st.session_state) - fast, but lost on app restart.
+    #   2. On-disk (data/ai_cache.json) - survives restarts, so once your
+    #      45 reports have been analyzed once, they never need to be sent
+    #      to the AI again unless the report text itself changes.
+    # Only SUCCESSFUL results are ever cached - a report that errored out
+    # (e.g. a rate limit) is deliberately left uncached so it's retried on
+    # the next rerun instead of being stuck as "failed" forever.
     if "ai_cache" not in st.session_state:
-        st.session_state["ai_cache"] = {}
+        st.session_state["ai_cache"] = load_disk_cache()
     ai_cache = st.session_state["ai_cache"]
 
     all_reports = filtered_df["report"].tolist()
-    uncached_reports = [r for r in all_reports if (r, model_name) not in ai_cache]
+    uncached_reports = [r for r in all_reports if _cache_key(r, model_name) not in ai_cache]
 
     fresh_results = {}
     if uncached_reports:
@@ -273,14 +273,19 @@ if client is not None:
             )
             progress_bar.empty()
 
+        newly_cached = False
         for report_text, result in zip(uncached_reports, new_results):
             if "error" not in result:
-                ai_cache[(report_text, model_name)] = result
+                ai_cache[_cache_key(report_text, model_name)] = result
+                newly_cached = True
             else:
                 fresh_results[report_text] = result
 
+        if newly_cached:
+            save_disk_cache(ai_cache)
+
     results = [
-        ai_cache[(r, model_name)] if (r, model_name) in ai_cache
+        ai_cache[_cache_key(r, model_name)] if _cache_key(r, model_name) in ai_cache
         else fresh_results.get(r, {"error": "No result returned for this report."})
         for r in all_reports
     ]
