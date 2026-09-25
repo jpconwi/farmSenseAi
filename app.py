@@ -242,6 +242,13 @@ if client is not None:
     # browser session. Without this, changing a sidebar filter reruns the
     # whole script and re-analyzes every report from scratch every time,
     # which is what burns through the free-tier rate limit in seconds.
+    #
+    # IMPORTANT: we only cache SUCCESSFUL results. If a report's analysis
+    # comes back with an error (e.g. a 429 rate-limit that survived all
+    # retries), we deliberately do NOT cache it - otherwise that one bad
+    # result would be replayed forever on every rerun, even after the
+    # quota resets a minute later, making the whole dashboard look
+    # permanently broken until you restart the app.
     if "ai_cache" not in st.session_state:
         st.session_state["ai_cache"] = {}
     ai_cache = st.session_state["ai_cache"]
@@ -249,6 +256,7 @@ if client is not None:
     all_reports = filtered_df["report"].tolist()
     uncached_reports = [r for r in all_reports if (r, model_name) not in ai_cache]
 
+    fresh_results = {}
     if uncached_reports:
         with st.spinner(
             f"Analyzing {len(uncached_reports)} new farmer report(s) with AI... "
@@ -266,18 +274,26 @@ if client is not None:
             progress_bar.empty()
 
         for report_text, result in zip(uncached_reports, new_results):
-            ai_cache[(report_text, model_name)] = result
+            if "error" not in result:
+                ai_cache[(report_text, model_name)] = result
+            else:
+                fresh_results[report_text] = result
 
-    results = [ai_cache[(r, model_name)] for r in all_reports]
+    results = [
+        ai_cache[(r, model_name)] if (r, model_name) in ai_cache
+        else fresh_results.get(r, {"error": "No result returned for this report."})
+        for r in all_reports
+    ]
 
     # Check how many analyses failed (e.g. due to a bad API key or network issue)
     error_count = sum(1 for r in results if "error" in r)
 
     if error_count == len(results):
+        first_error = next((r["error"] for r in results if "error" in r), "Unknown error.")
         st.error(
             "❌ AI analysis failed for all reports. The dashboard will show "
-            "the raw reports without AI categories. Common causes: invalid "
-            "API key, no internet connection, or the Gemini API is down."
+            "the raw reports without AI categories.\n\n"
+            f"**Underlying error:** {first_error}"
         )
         analyzed_df["category"] = "Not analyzed"
         analyzed_df["severity"] = "Not analyzed"
