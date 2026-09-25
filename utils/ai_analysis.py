@@ -15,6 +15,7 @@ Beginner note:
 
 import json
 import re
+import time
 
 # We import the Google Gen AI library. If it isn't installed, the app will
 # show a friendly error instead of crashing (handled in app.py).
@@ -30,6 +31,54 @@ except ImportError:
 # always agree on the same categories.
 CATEGORIES = ["Pest", "Disease", "Water", "Weather", "Nutrient", "Other"]
 SEVERITIES = ["Low", "Moderate", "High"]
+
+# How many reports we bundle into a single API call. The free Gemini tier
+# allows only ~5 requests per minute, so bundling reports together (instead
+# of one request per report) is what keeps a 45-report dataset from
+# blowing through that quota.
+DEFAULT_GROUP_SIZE = 8
+
+# How many times we retry a single API call if we get a 429 (rate limit)
+# error, and how long we wait between retries if Google doesn't tell us.
+MAX_RETRIES = 3
+DEFAULT_RETRY_SECONDS = 20
+
+
+def _is_rate_limit_error(exc: Exception) -> bool:
+    """True if this exception looks like a 429 RESOURCE_EXHAUSTED error."""
+    msg = str(exc)
+    return "429" in msg or "RESOURCE_EXHAUSTED" in msg
+
+
+def _extract_retry_delay(exc: Exception, default: int = DEFAULT_RETRY_SECONDS) -> int:
+    """
+    Gemini's 429 errors usually include a suggested wait time, e.g.
+    "retryDelay': '21s'". If we can find it, use it (plus a small buffer);
+    otherwise fall back to `default` seconds.
+    """
+    match = re.search(r"retryDelay['\"]?\s*:\s*['\"]?(\d+)s", str(exc))
+    if match:
+        return int(match.group(1)) + 2  # small buffer on top of Google's suggestion
+    return default
+
+
+def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
+    """
+    Calls fn() and, if it fails with a rate-limit (429) error, waits and
+    retries up to max_retries times. Any other kind of error is raised
+    immediately (no point retrying an invalid key or a malformed request).
+    """
+    last_exc = None
+    for attempt in range(max_retries + 1):
+        try:
+            return fn()
+        except Exception as e:
+            last_exc = e
+            if _is_rate_limit_error(e) and attempt < max_retries:
+                time.sleep(_extract_retry_delay(e))
+                continue
+            raise
+    raise last_exc
 
 
 def get_client(api_key: str):
@@ -107,14 +156,14 @@ Farmer report:
 Respond with ONLY the JSON object."""
 
     try:
-        response = client.models.generate_content(
+        response = _call_with_retry(lambda: client.models.generate_content(
             model=model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0,  # temperature=0 makes the answer more consistent
                 response_mime_type="application/json",  # asks Gemini to return raw JSON
             ),
-        )
+        ))
         raw_text = response.text
         result = _extract_json(raw_text)
 
@@ -141,9 +190,85 @@ Respond with ONLY the JSON object."""
         return {"error": f"AI request failed: {e}"}
 
 
-def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash", progress_callback=None) -> list:
+def _analyze_group(client, reports: list, model: str) -> list:
     """
-    Runs analyze_report() for a list of report strings, one at a time.
+    Sends a SMALL GROUP of reports (e.g. 8) to the AI in a single API call
+    and asks for a JSON array of results, one per report, in the same order.
+
+    This is the key trick for staying under the free-tier rate limit: one
+    request classifies many reports instead of one request per report.
+
+    Returns a list of dicts (same length/order as `reports`). If the whole
+    group call fails, every entry in the returned list has "error" set.
+    """
+    if client is None:
+        return [{"error": "No Gemini client available. Please check your API key."} for _ in reports]
+
+    numbered = "\n".join(f'{i + 1}. """{text}"""' for i, text in enumerate(reports))
+
+    prompt = f"""You are an agricultural assistant helping analyze farmer reports.
+
+Below is a numbered list of {len(reports)} farmer reports. Analyze EACH ONE
+and respond with ONLY a valid JSON array (no extra text, no markdown) with
+exactly {len(reports)} elements, in the SAME ORDER as the reports below.
+
+Each element must be an object with exactly these keys:
+- "category": must be exactly one of {CATEGORIES}
+- "severity": must be exactly one of {SEVERITIES}
+- "keywords": a short comma-separated string of important keywords (3-5 words)
+- "summary": one short sentence summarizing the problem
+
+Farmer reports:
+{numbered}
+
+Respond with ONLY the JSON array, containing exactly {len(reports)} elements."""
+
+    try:
+        response = _call_with_retry(lambda: client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0,
+                response_mime_type="application/json",
+            ),
+        ))
+        parsed = _extract_json(response.text)
+        if not isinstance(parsed, list):
+            raise ValueError("Expected a JSON array from the AI.")
+
+        results = []
+        for i in range(len(reports)):
+            if i >= len(parsed) or not isinstance(parsed[i], dict):
+                results.append({"error": "The AI did not return a result for this report."})
+                continue
+            item = parsed[i]
+            category = item.get("category", "Other")
+            if category not in CATEGORIES:
+                category = "Other"
+            severity = item.get("severity", "Low")
+            if severity not in SEVERITIES:
+                severity = "Low"
+            results.append({
+                "category": category,
+                "severity": severity,
+                "keywords": str(item.get("keywords", "")).strip(),
+                "summary": str(item.get("summary", "")).strip(),
+            })
+        return results
+
+    except json.JSONDecodeError:
+        return [{"error": "The AI returned a response that wasn't valid JSON. Please try again."} for _ in reports]
+    except Exception as e:
+        return [{"error": f"AI request failed: {e}"} for _ in reports]
+
+
+def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash",
+                           progress_callback=None, group_size: int = DEFAULT_GROUP_SIZE) -> list:
+    """
+    Classifies a list of report strings using the AI, sending `group_size`
+    reports per API call (instead of one call per report). This dramatically
+    cuts the number of requests made - important because the free Gemini
+    tier only allows ~5 requests per minute.
 
     progress_callback (optional): a function that accepts a float between
     0 and 1, used to update a Streamlit progress bar.
@@ -151,13 +276,21 @@ def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash"
     Returns a list of dictionaries (same shape as analyze_report's output),
     in the same order as the input list.
     """
+    if not reports:
+        return []
+
     results = []
-    total = len(reports) if reports else 1
-    for i, text in enumerate(reports):
-        result = analyze_report(client, text, model=model)
-        results.append(result)
+    total_groups = max(1, (len(reports) + group_size - 1) // group_size)
+
+    for group_index in range(total_groups):
+        start = group_index * group_size
+        chunk = reports[start:start + group_size]
+        if not chunk:
+            continue
+        results.extend(_analyze_group(client, chunk, model=model))
         if progress_callback:
-            progress_callback((i + 1) / total)
+            progress_callback((group_index + 1) / total_groups)
+
     return results
 
 
@@ -242,11 +375,11 @@ Question: {question}
 Give a short, clear, direct answer."""
 
     try:
-        response = client.models.generate_content(
+        response = _call_with_retry(lambda: client.models.generate_content(
             model=model,
             contents=prompt,
             config=types.GenerateContentConfig(temperature=0.2),
-        )
+        ))
         return response.text.strip()
     except Exception as e:
         return f"⚠️ Could not get an answer from the AI right now. ({e})"

@@ -238,17 +238,37 @@ if filtered_df.empty:
     st.stop()
 
 if client is not None:
-    with st.spinner("Analyzing farmer reports with AI... this may take a moment."):
-        progress_bar = st.progress(0.0)
+    # Cache AI results per (report text, model) for the lifetime of the
+    # browser session. Without this, changing a sidebar filter reruns the
+    # whole script and re-analyzes every report from scratch every time,
+    # which is what burns through the free-tier rate limit in seconds.
+    if "ai_cache" not in st.session_state:
+        st.session_state["ai_cache"] = {}
+    ai_cache = st.session_state["ai_cache"]
 
-        def update_progress(pct):
-            progress_bar.progress(pct)
+    all_reports = filtered_df["report"].tolist()
+    uncached_reports = [r for r in all_reports if (r, model_name) not in ai_cache]
 
-        results = analyze_reports_batch(
-            client, filtered_df["report"].tolist(), model=model_name,
-            progress_callback=update_progress,
-        )
-        progress_bar.empty()
+    if uncached_reports:
+        with st.spinner(
+            f"Analyzing {len(uncached_reports)} new farmer report(s) with AI... "
+            "this may take a moment."
+        ):
+            progress_bar = st.progress(0.0)
+
+            def update_progress(pct):
+                progress_bar.progress(pct)
+
+            new_results = analyze_reports_batch(
+                client, uncached_reports, model=model_name,
+                progress_callback=update_progress,
+            )
+            progress_bar.empty()
+
+        for report_text, result in zip(uncached_reports, new_results):
+            ai_cache[(report_text, model_name)] = result
+
+    results = [ai_cache[(r, model_name)] for r in all_reports]
 
     # Check how many analyses failed (e.g. due to a bad API key or network issue)
     error_count = sum(1 for r in results if "error" in r)
