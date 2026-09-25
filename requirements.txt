@@ -1,5 +1,6 @@
+
+
 streamlit>=1.36
 pandas>=2.2
 google-genai>=0.3
-plotly>=5.22
-"""fix: add missing dependencies for streamlit and plotly"""
+plotly>=5.22s
