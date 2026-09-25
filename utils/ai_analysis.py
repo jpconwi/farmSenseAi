@@ -1,26 +1,29 @@
 """
 utils/ai_analysis.py
 ---------------------
-This file contains ALL the functions that talk to the OpenAI API.
+This file contains ALL the functions that talk to the Google Gemini API.
 
 Keeping these functions in a separate file (instead of putting everything
 inside app.py) makes the project easier to read and easier to test.
 
 Beginner note:
-    "GenAI" here means we send some text to OpenAI's model (like gpt-4o-mini)
-    and ask it to return an answer. We always ask the model to reply in a
-    very strict format (JSON) so that Python can read the answer reliably.
+    "GenAI" here means we send some text to Google's Gemini model (e.g.
+    gemini-3.6-flash) and ask it to return an answer. We always ask the
+    model to reply in a very strict format (JSON) so that Python can read
+    the answer reliably.
 """
 
 import json
 import re
 
-# We import the OpenAI library. If it isn't installed, the app will show a
-# friendly error instead of crashing (handled in app.py).
+# We import the Google Gen AI library. If it isn't installed, the app will
+# show a friendly error instead of crashing (handled in app.py).
 try:
-    from openai import OpenAI
+    from google import genai
+    from google.genai import types
 except ImportError:
-    OpenAI = None
+    genai = None
+    types = None
 
 
 # Allowed categories. We keep this list in ONE place so app.py and this file
@@ -31,21 +34,21 @@ SEVERITIES = ["Low", "Moderate", "High"]
 
 def get_client(api_key: str):
     """
-    Create and return an OpenAI client using the given API key.
+    Create and return a Gemini client using the given API key.
 
     Returns None if:
       - the api_key is empty
-      - the openai package failed to import
+      - the google-genai package failed to import
 
     Beginner note: we NEVER hard-code the API key in this file. It is always
-    passed in from app.py, which reads it from st.secrets["OPENAI_API_KEY"].
+    passed in from app.py, which reads it from st.secrets["GEMINI_API_KEY"].
     """
     if not api_key:
         return None
-    if OpenAI is None:
+    if genai is None:
         return None
     try:
-        return OpenAI(api_key=api_key)
+        return genai.Client(api_key=api_key)
     except Exception:
         return None
 
@@ -54,7 +57,7 @@ def _extract_json(text: str):
     """
     Small helper that removes markdown code fences (```json ... ```) if the
     AI added them, then parses the remaining text as JSON.
-    Raises ValueError if the text is not valid JSON.
+    Raises ValueError/JSONDecodeError if the text is not valid JSON.
     """
     cleaned = text.strip()
     cleaned = re.sub(r"^```json", "", cleaned, flags=re.IGNORECASE).strip()
@@ -63,7 +66,7 @@ def _extract_json(text: str):
     return json.loads(cleaned)
 
 
-def analyze_report(client, report_text: str, model: str = "gpt-4o-mini") -> dict:
+def analyze_report(client, report_text: str, model: str = "gemini-3.6-flash") -> dict:
     """
     Send ONE farmer report to the AI and ask it to classify it.
 
@@ -80,7 +83,7 @@ def analyze_report(client, report_text: str, model: str = "gpt-4o-mini") -> dict
     message. It NEVER makes up fake analysis results.
     """
     if client is None:
-        return {"error": "No OpenAI client available. Please check your API key."}
+        return {"error": "No Gemini client available. Please check your API key."}
 
     if not report_text or not str(report_text).strip():
         return {"error": "Report text is empty, nothing to analyze."}
@@ -104,12 +107,15 @@ Farmer report:
 Respond with ONLY the JSON object."""
 
     try:
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,  # temperature=0 makes the answer more consistent
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0,  # temperature=0 makes the answer more consistent
+                response_mime_type="application/json",  # asks Gemini to return raw JSON
+            ),
         )
-        raw_text = response.choices[0].message.content
+        raw_text = response.text
         result = _extract_json(raw_text)
 
         # --- Validate the AI's response before trusting it ---
@@ -135,7 +141,7 @@ Respond with ONLY the JSON object."""
         return {"error": f"AI request failed: {e}"}
 
 
-def analyze_reports_batch(client, reports: list, model: str = "gpt-4o-mini", progress_callback=None) -> list:
+def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash", progress_callback=None) -> list:
     """
     Runs analyze_report() for a list of report strings, one at a time.
 
@@ -207,7 +213,7 @@ def build_dataset_summary(df, max_chars: int = 4000) -> str:
     return summary
 
 
-def ask_chatbot(client, question: str, dataset_summary: str, model: str = "gpt-4o-mini") -> str:
+def ask_chatbot(client, question: str, dataset_summary: str, model: str = "gemini-3.6-flash") -> str:
     """
     Sends the user's question, together with the summarized dataset, to the
     AI and returns a plain-text answer.
@@ -216,7 +222,7 @@ def ask_chatbot(client, question: str, dataset_summary: str, model: str = "gpt-4
     so if it cannot answer - this prevents the chatbot from making up facts.
     """
     if client is None:
-        return "⚠️ AI chatbot is unavailable because no valid OpenAI API key was found."
+        return "⚠️ AI chatbot is unavailable because no valid Gemini API key was found."
 
     if not question or not question.strip():
         return "Please type a question first."
@@ -236,11 +242,11 @@ Question: {question}
 Give a short, clear, direct answer."""
 
     try:
-        response = client.chat.completions.create(
+        response = client.models.generate_content(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.2),
         )
-        return response.choices[0].message.content.strip()
+        return response.text.strip()
     except Exception as e:
         return f"⚠️ Could not get an answer from the AI right now. ({e})"

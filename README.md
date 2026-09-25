@@ -6,7 +6,7 @@
 
 FarmSense AI is a GenAI-powered Streamlit application that analyzes farmer
 reports about agricultural problems. It loads a CSV dataset of unstructured
-farmer reports, cleans it with Pandas, uses the OpenAI API to classify and
+farmer reports, cleans it with Pandas, uses the Google Gemini API to classify and
 summarize each report, displays interactive charts, and includes an AI
 chatbot that can answer questions about the dataset.
 
@@ -51,8 +51,8 @@ file with your own data as long as you keep the same 4 columns.
 - **Python 3**
 - **Streamlit** — the web app framework/UI
 - **Pandas** — data loading and cleaning
-- **OpenAI API** (`openai` Python package) — GenAI classification, summary,
-  and chatbot
+- **Google Gemini API** (`google-genai` Python package) — GenAI classification,
+  summary, and chatbot
 - **Plotly** — interactive charts
 
 ## 5. Project Structure
@@ -69,10 +69,10 @@ FarmSenseAI/
 │
 ├── utils/
 │   ├── __init__.py            # Makes "utils" an importable Python package
-│   └── ai_analysis.py         # All functions that call the OpenAI API
+│   └── ai_analysis.py         # All functions that call the Gemini API
 │
 └── .streamlit/
-    └── secrets.toml           # Your OpenAI API key goes here (kept private)
+    └── secrets.toml           # Your Gemini API key goes here (kept private)
 ```
 
 Where each file goes, in plain terms:
@@ -105,17 +105,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 7. How to Configure the OpenAI API Key
+## 7. How to Configure the Gemini API Key
 
-1. Get an API key from https://platform.openai.com/api-keys (you'll need an
-   OpenAI account with billing set up).
+1. Get a free API key from https://aistudio.google.com/app/apikey (sign in
+   with a Google account — no billing setup required to start).
 2. Open `.streamlit/secrets.toml` in a text editor.
 3. Replace the placeholder with your real key:
    ```toml
-   OPENAI_API_KEY = "sk-...your real key..."
+   GEMINI_API_KEY = "your-real-key-here"
+   GEMINI_MODEL = "gemini-3.6-flash"
    ```
 4. Save the file. **Do not share this file or upload it to GitHub** — the
    included `.gitignore` already excludes it for you.
+5. ⚠️ If your key was ever pasted into a chat, document, or committed to a
+   public repo by mistake, treat it as compromised: go back to
+   https://aistudio.google.com/app/apikey and delete/regenerate it, then
+   update `secrets.toml` with the new one.
 
 If you skip this step, the app will still run — it will show the raw
 dataset and charts, but AI classification and the chatbot will be disabled
@@ -154,7 +159,8 @@ doesn't, copy that URL into your browser manually.
 5. Before clicking Deploy, open **"Advanced settings" → "Secrets"** and
    paste:
    ```toml
-   OPENAI_API_KEY = "sk-...your real key..."
+   GEMINI_API_KEY = "your-real-key-here"
+   GEMINI_MODEL = "gemini-3.6-flash"
    ```
 6. Click **Deploy**. Streamlit Cloud will install `requirements.txt`
    automatically and launch your app with a public URL.
@@ -164,8 +170,9 @@ doesn't, copy that URL into your browser manually.
 | Problem | Likely Cause | Solution |
 |---|---|---|
 | "Could not find the dataset file" | CSV missing or wrong location | Make sure `farmer_reports.csv` is inside `data/` |
-| "No OpenAI API key found" | `secrets.toml` not set up | Follow section 7 above |
-| "AI request failed" | Invalid key, no internet, or OpenAI API is down | Check your key, check your internet connection, try again later |
+| "No Gemini API key found" | `secrets.toml` not set up | Follow section 7 above |
+| "AI request failed" | Invalid key, no internet, or the Gemini API is down | Check your key, check your internet connection, try again later |
+| "ModuleNotFoundError: No module named 'utils'" | The `utils/` folder wasn't pushed to GitHub | Confirm `utils/__init__.py` and `utils/ai_analysis.py` appear in your GitHub repo, then reboot the app |
 | "The AI returned a response that wasn't valid JSON" | Rare AI formatting hiccup | Click Analyze again — the app never crashes, it just skips that report |
 | App won't start / `ModuleNotFoundError` | Packages not installed | Run `pip install -r requirements.txt` again inside your activated virtual environment |
 | Chart is empty | Filters are too narrow | Widen your Crop/Location/Date filters in the sidebar |
@@ -185,7 +192,7 @@ doesn't, copy that URL into your browser manually.
 | Requirement | Where it's implemented |
 |---|---|
 | Dataset loading & cleaning with Pandas | `load_and_clean_data()` in `app.py` — removes empty rows, duplicates, converts dates, handles missing values |
-| GenAI-powered text analysis | `utils/ai_analysis.py` — `analyze_report()` classifies category/severity/keywords/summary via OpenAI |
+| GenAI-powered text analysis | `utils/ai_analysis.py` — `analyze_report()` classifies category/severity/keywords/summary via Gemini |
 | Streamlit interactive UI | Sidebar filters, columns, expanders, metrics, buttons, text areas throughout `app.py` |
 | Data visualization | Plotly bar charts (crop, location) and pie chart (categories) |
 | Dataset filtering | Sidebar crop/location/date filters applied before analysis and display |

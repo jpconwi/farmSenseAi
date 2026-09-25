@@ -7,7 +7,7 @@ This is the main Streamlit application file.
 It is organized into clearly labeled sections so a beginner can follow along:
 
     1.  Page setup
-    2.  Load API key + create OpenAI client
+    2.  Load API key + create Gemini client
     3.  Load and clean the dataset (Pandas)
     4.  Sidebar filters
     5.  Dashboard overview (metric cards)
@@ -49,11 +49,11 @@ REQUIRED_COLUMNS = ["date", "location", "crop", "report"]
 
 
 # ---------------------------------------------------------------------------
-# 2. LOAD API KEY + CREATE OPENAI CLIENT
+# 2. LOAD API KEY + CREATE GEMINI CLIENT
 # ---------------------------------------------------------------------------
 def load_api_key() -> str:
     """
-    Reads the OpenAI API key from Streamlit secrets.
+    Reads the Gemini API key from Streamlit secrets.
 
     Beginner note: st.secrets reads from the file .streamlit/secrets.toml
     (when running locally) or from the "Secrets" section of your app's
@@ -63,9 +63,20 @@ def load_api_key() -> str:
     ever share your code or push it to GitHub.
     """
     try:
-        return st.secrets["OPENAI_API_KEY"]
+        return st.secrets["GEMINI_API_KEY"]
     except Exception:
         return ""
+
+
+def load_default_model() -> str:
+    """
+    Reads the default Gemini model name from secrets (GEMINI_MODEL), if you
+    set one there. Falls back to "gemini-3.6-flash" if it isn't set.
+    """
+    try:
+        return st.secrets["GEMINI_MODEL"]
+    except Exception:
+        return "gemini-3.6-flash"
 
 
 api_key = load_api_key()
@@ -73,15 +84,21 @@ api_key_missing = not api_key
 
 if api_key_missing:
     st.sidebar.error(
-        "⚠️ No OpenAI API key found.\n\n"
+        "⚠️ No Gemini API key found.\n\n"
         "AI features (report analysis + chatbot) will not work until you add "
         "your key to `.streamlit/secrets.toml` (see README.md)."
     )
 
 client = get_client(api_key)
+
+default_model = load_default_model()
+model_options = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]
+if default_model not in model_options:
+    model_options.insert(0, default_model)  # make sure your secrets.toml choice is always selectable
+
 model_name = st.sidebar.selectbox(
-    "AI Model", ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"], index=0,
-    help="gpt-4o-mini is the cheapest and fastest option, good for this project.",
+    "AI Model", model_options, index=model_options.index(default_model),
+    help="gemini-3.6-flash is fast and inexpensive, good for this project.",
 )
 
 
@@ -240,7 +257,7 @@ if client is not None:
         st.error(
             "❌ AI analysis failed for all reports. The dashboard will show "
             "the raw reports without AI categories. Common causes: invalid "
-            "API key, no internet connection, or OpenAI API is down."
+            "API key, no internet connection, or the Gemini API is down."
         )
         analyzed_df["category"] = "Not analyzed"
         analyzed_df["severity"] = "Not analyzed"
@@ -255,7 +272,7 @@ if client is not None:
         analyzed_df["summary"] = [r.get("summary", "") if "error" not in r else "" for r in results]
 else:
     st.warning(
-        "⚠️ AI features are disabled because no OpenAI API key was found. "
+        "⚠️ AI features are disabled because no Gemini API key was found. "
         "You can still browse and filter the raw dataset below. "
         "See README.md to add your API key."
     )
@@ -347,7 +364,7 @@ if st.button("🔎 Analyze Report"):
     if not new_report.strip():
         st.warning("Please type a report before clicking Analyze.")
     elif client is None:
-        st.error("❌ Cannot analyze: no valid OpenAI API key found. See README.md to set it up.")
+        st.error("❌ Cannot analyze: no valid Gemini API key found. See README.md to set it up.")
     else:
         with st.spinner("Analyzing..."):
             result = analyze_report(client, new_report, model=model_name)
@@ -397,7 +414,7 @@ if user_question:
 
     with st.chat_message("assistant"):
         if client is None:
-            answer = "⚠️ Chatbot is unavailable because no valid OpenAI API key was found. See README.md."
+            answer = "⚠️ Chatbot is unavailable because no valid Gemini API key was found. See README.md."
         else:
             with st.spinner("Thinking..."):
                 answer = ask_chatbot(client, user_question, dataset_summary, model=model_name)
