@@ -119,7 +119,8 @@ use_offline = st.sidebar.checkbox(
     help="Classifies with simple keyword rules. Instant, but less accurate than Gemini.",
 )
 if st.sidebar.button("🔄 Retry AI analysis"):
-    st.session_state.pop("ai_failed", None)
+    for _k in [k for k in st.session_state if str(k).startswith("ai_failed")]:
+        st.session_state.pop(_k)
 
 
 # ---------------------------------------------------------------------------
@@ -279,7 +280,7 @@ elif client is None:
         "⚠️ No Gemini API key found - showing fast offline results. "
         "Add your key (see README.md) for AI analysis."
     )
-elif todo and not st.session_state.get("ai_failed"):
+elif todo and not st.session_state.get(f"ai_failed_{model_name}"):
     with st.status(f"Analyzing {len(todo)} unique report(s) with AI...", expanded=True) as status:
         progress_bar = st.progress(0.0)
         new_results = analyze_reports_batch(
@@ -295,12 +296,12 @@ elif todo and not st.session_state.get("ai_failed"):
         if ok:
             save_disk_cache(ai_cache)
         if ok == 0:
-            st.session_state["ai_failed"] = ai_error
+            st.session_state[f"ai_failed_{model_name}"] = ai_error
             status.update(label="AI unavailable - using offline results", state="error")
         else:
             status.update(label=f"AI analysis done ({ok}/{len(todo)})", state="complete")
-elif st.session_state.get("ai_failed"):
-    ai_error = st.session_state["ai_failed"]
+elif st.session_state.get(f"ai_failed_{model_name}"):
+    ai_error = st.session_state[f"ai_failed_{model_name}"]
 
 if ai_error:
     st.error(
