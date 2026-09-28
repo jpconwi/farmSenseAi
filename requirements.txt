@@ -3,4 +3,4 @@
 streamlit>=1.36
 pandas>=2.2
 google-genai>=0.3
-plotly>=5.22s
+plotly>=5.22
