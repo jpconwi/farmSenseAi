@@ -25,6 +25,13 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+# Streamlit Cloud can keep an OLD copy of utils/ai_analysis.py in memory after
+# a code update (causing "cannot import name ..." errors). Reloading it here
+# guarantees the app always uses the newest version of that file.
+import importlib
+import utils.ai_analysis as _ai_module
+importlib.reload(_ai_module)
+
 # Our own helper functions live in utils/ai_analysis.py
 from utils.ai_analysis import (
     get_client,
