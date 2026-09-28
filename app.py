@@ -89,6 +89,18 @@ def load_default_model() -> str:
         return "deepseek-chat"
 
 
+def load_base_url() -> str:
+    """
+    Reads an optional API base URL from secrets (DEEPSEEK_BASE_URL). Leave it
+    out to use DeepSeek's own API; set it if your key/model comes from another
+    OpenAI-compatible provider that hosts DeepSeek models.
+    """
+    try:
+        return st.secrets["DEEPSEEK_BASE_URL"]
+    except Exception:
+        return ""
+
+
 api_key = load_api_key()
 api_key_missing = not api_key
 
@@ -99,7 +111,7 @@ if api_key_missing:
         "your key to `.streamlit/secrets.toml` (see README.md)."
     )
 
-client = get_client(api_key)
+client = get_client(api_key, load_base_url())
 
 default_model = load_default_model()
 model_options = ["deepseek-chat"]
@@ -108,7 +120,7 @@ if default_model not in model_options:
 
 model_name = st.sidebar.selectbox(
     "AI Model", model_options, index=model_options.index(default_model),
-    help="deepseek-chat is fast and inexpensive, good for this project.",
+    help="Set DEEPSEEK_MODEL in secrets.toml to use a different model name.",
 )
 
 if st.sidebar.button("🔄 Retry AI analysis"):

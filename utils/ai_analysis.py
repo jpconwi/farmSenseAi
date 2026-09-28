@@ -89,7 +89,7 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
     raise last_exc
 
 
-def get_client(api_key: str):
+def get_client(api_key: str, base_url: str = DEEPSEEK_BASE_URL):
     """
     Create and return a DeepSeek client using the given API key.
 
@@ -106,7 +106,7 @@ def get_client(api_key: str):
         return None
     try:
         # The timeout stops a bad connection from freezing the app forever.
-        return OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL, timeout=REQUEST_TIMEOUT_S)
+        return OpenAI(api_key=api_key, base_url=base_url or DEEPSEEK_BASE_URL, timeout=REQUEST_TIMEOUT_S)
     except Exception:
         return None
 
