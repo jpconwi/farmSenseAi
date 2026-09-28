@@ -38,12 +38,14 @@ SEVERITIES = ["Low", "Moderate", "High"]
 # of one request per report) is what keeps a 45-report dataset from
 # blowing through that quota. 15 keeps a typical ~45-report dataset to just
 # 3 calls total, comfortably under the 5/minute limit with no retry waits.
-DEFAULT_GROUP_SIZE = 15
+DEFAULT_GROUP_SIZE = 30
 
 # How many times we retry a single API call if we get a 429 (rate limit)
 # error, and how long we wait between retries if Google doesn't tell us.
-MAX_RETRIES = 3
-DEFAULT_RETRY_SECONDS = 20
+MAX_RETRIES = 1            # was 3 - long retry loops were a cause of "stuck" analysis
+DEFAULT_RETRY_SECONDS = 10
+MAX_RETRY_WAIT = 15        # never sleep longer than this between retries
+REQUEST_TIMEOUT_MS = 30000 # give up on any single API call after 30 seconds
 
 
 def _is_rate_limit_error(exc: Exception) -> bool:
@@ -60,8 +62,8 @@ def _extract_retry_delay(exc: Exception, default: int = DEFAULT_RETRY_SECONDS) -
     """
     match = re.search(r"retryDelay['\"]?\s*:\s*['\"]?(\d+)s", str(exc))
     if match:
-        return int(match.group(1)) + 2  # small buffer on top of Google's suggestion
-    return default
+        return min(int(match.group(1)) + 2, MAX_RETRY_WAIT)
+    return min(default, MAX_RETRY_WAIT)
 
 
 def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
@@ -76,7 +78,8 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
             return fn()
         except Exception as e:
             last_exc = e
-            if _is_rate_limit_error(e) and attempt < max_retries:
+            # A daily-quota 429 will not clear in seconds, so fail fast.
+            if _is_rate_limit_error(e) and "PerDay" not in str(e) and attempt < max_retries:
                 time.sleep(_extract_retry_delay(e))
                 continue
             raise
@@ -99,7 +102,15 @@ def get_client(api_key: str):
     if genai is None:
         return None
     try:
-        return genai.Client(api_key=api_key)
+        # The timeout stops a bad connection from freezing the app forever
+        # (by default the client waits with NO time limit).
+        try:
+            return genai.Client(
+                api_key=api_key,
+                http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
+            )
+        except Exception:
+            return genai.Client(api_key=api_key)
     except Exception:
         return None
 
@@ -294,6 +305,33 @@ def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash"
             progress_callback((group_index + 1) / total_groups)
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# FAST OFFLINE CLASSIFIER (no internet, no API key, instant)
+# ---------------------------------------------------------------------------
+# Used only as a clearly-labelled fallback when the AI is unavailable or slow.
+_RULES = [
+    ("Pest", ["insect", "worm", "beetle", "aphid", "caterpillar", "rat", "pest", "bug"]),
+    ("Disease", ["fungus", "mildew", "spot", "patch", "blight", "rot", "disease"]),
+    ("Water", ["dry", "water", "drought", "wilting", "wilt"]),
+    ("Weather", ["wind", "rain", "storm", "flood", "typhoon", "fell over"]),
+    ("Nutrient", ["nutrient", "fertilizer", "pale", "yellow", "deficien"]),
+]
+_HIGH = ["dying", "flooded", "damaged", "fell over", "knocked", "spreading quickly", "boring"]
+_MOD = ["many", "several", "wilting", "curling", "fewer", "drooping"]
+
+
+def rule_based_classify(report_text: str) -> dict:
+    """Keyword-based classification. Same output shape as the AI result."""
+    t = str(report_text).lower()
+    category = "Other"
+    for cat, words in _RULES:
+        if any(w in t for w in words):
+            category = cat
+            break
+    severity = "High" if any(w in t for w in _HIGH) else "Moderate" if any(w in t for w in _MOD) else "Low"
+    return {"category": category, "severity": severity, "keywords": "", "summary": str(report_text).strip()}
 
 
 # ---------------------------------------------------------------------------

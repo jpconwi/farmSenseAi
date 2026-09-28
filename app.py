@@ -36,6 +36,7 @@ from utils.ai_analysis import (
     load_disk_cache,
     save_disk_cache,
     _cache_key,
+    rule_based_classify,
 )
 
 # ---------------------------------------------------------------------------
@@ -103,6 +104,15 @@ model_name = st.sidebar.selectbox(
     "AI Model", model_options, index=model_options.index(default_model),
     help="gemini-3.6-flash is fast and inexpensive, good for this project.",
 )
+
+
+use_offline = st.sidebar.checkbox(
+    "⚡ Fast offline mode (no AI, instant)",
+    value=False,
+    help="Classifies with simple keyword rules. Instant, but less accurate than Gemini.",
+)
+if st.sidebar.button("🔄 Retry AI analysis"):
+    st.session_state.pop("ai_failed", None)
 
 
 # ---------------------------------------------------------------------------
@@ -240,87 +250,75 @@ if filtered_df.empty:
     st.warning("No reports match the current filters. Try adjusting the sidebar filters.")
     st.stop()
 
-if client is not None:
-    # Two layers of caching for AI results, keyed by (report text, model):
-    #   1. In-memory (st.session_state) - fast, but lost on app restart.
-    #   2. On-disk (data/ai_cache.json) - survives restarts, so once your
-    #      45 reports have been analyzed once, they never need to be sent
-    #      to the AI again unless the report text itself changes.
-    # Only SUCCESSFUL results are ever cached - a report that errored out
-    # (e.g. a rate limit) is deliberately left uncached so it's retried on
-    # the next rerun instead of being stuck as "failed" forever.
-    if "ai_cache" not in st.session_state:
-        st.session_state["ai_cache"] = load_disk_cache()
-    ai_cache = st.session_state["ai_cache"]
+# SPEED DESIGN
+#  * We analyze ALL cleaned reports ONCE (not just the filtered ones), so moving
+#    a filter never triggers a new AI call - it only slices results we have.
+#  * We send only UNIQUE report texts (many reports repeat the same sentence),
+#    in as few API calls as possible.
+#  * Results are cached in memory and on disk; each call has a timeout, and if
+#    the AI fails we show clearly-labelled offline results instead of waiting.
+if "ai_cache" not in st.session_state:
+    st.session_state["ai_cache"] = load_disk_cache()
+ai_cache = st.session_state["ai_cache"]
 
-    all_reports = filtered_df["report"].tolist()
-    uncached_reports = [r for r in all_reports if _cache_key(r, model_name) not in ai_cache]
+unique_reports = list(dict.fromkeys(raw_df["report"].tolist()))
+todo = [r for r in unique_reports if _cache_key(r, model_name) not in ai_cache]
+ai_error = None
 
-    fresh_results = {}
-    if uncached_reports:
-        with st.spinner(
-            f"Analyzing {len(uncached_reports)} new farmer report(s) with AI... "
-            "this may take a moment."
-        ):
-            progress_bar = st.progress(0.0)
-
-            def update_progress(pct):
-                progress_bar.progress(pct)
-
-            new_results = analyze_reports_batch(
-                client, uncached_reports, model=model_name,
-                progress_callback=update_progress,
-            )
-            progress_bar.empty()
-
-        newly_cached = False
-        for report_text, result in zip(uncached_reports, new_results):
-            if "error" not in result:
-                ai_cache[_cache_key(report_text, model_name)] = result
-                newly_cached = True
-            else:
-                fresh_results[report_text] = result
-
-        if newly_cached:
-            save_disk_cache(ai_cache)
-
-    results = [
-        ai_cache[_cache_key(r, model_name)] if _cache_key(r, model_name) in ai_cache
-        else fresh_results.get(r, {"error": "No result returned for this report."})
-        for r in all_reports
-    ]
-
-    # Check how many analyses failed (e.g. due to a bad API key or network issue)
-    error_count = sum(1 for r in results if "error" in r)
-
-    if error_count == len(results):
-        first_error = next((r["error"] for r in results if "error" in r), "Unknown error.")
-        st.error(
-            "❌ AI analysis failed for all reports. The dashboard will show "
-            "the raw reports without AI categories.\n\n"
-            f"**Underlying error:** {first_error}"
-        )
-        analyzed_df["category"] = "Not analyzed"
-        analyzed_df["severity"] = "Not analyzed"
-        analyzed_df["keywords"] = ""
-        analyzed_df["summary"] = ""
-    else:
-        if error_count > 0:
-            st.warning(f"⚠️ {error_count} report(s) could not be analyzed by AI and are marked 'Not analyzed'.")
-        analyzed_df["category"] = [r.get("category", "Not analyzed") if "error" not in r else "Not analyzed" for r in results]
-        analyzed_df["severity"] = [r.get("severity", "Not analyzed") if "error" not in r else "Not analyzed" for r in results]
-        analyzed_df["keywords"] = [r.get("keywords", "") if "error" not in r else "" for r in results]
-        analyzed_df["summary"] = [r.get("summary", "") if "error" not in r else "" for r in results]
-else:
+if use_offline:
+    pass
+elif client is None:
     st.warning(
-        "⚠️ AI features are disabled because no Gemini API key was found. "
-        "You can still browse and filter the raw dataset below. "
-        "See README.md to add your API key."
+        "⚠️ No Gemini API key found - showing fast offline results. "
+        "Add your key (see README.md) for AI analysis."
     )
-    analyzed_df["category"] = "Not analyzed"
-    analyzed_df["severity"] = "Not analyzed"
-    analyzed_df["keywords"] = ""
-    analyzed_df["summary"] = ""
+elif todo and not st.session_state.get("ai_failed"):
+    with st.status(f"Analyzing {len(todo)} unique report(s) with AI...", expanded=True) as status:
+        progress_bar = st.progress(0.0)
+        new_results = analyze_reports_batch(
+            client, todo, model=model_name, progress_callback=progress_bar.progress
+        )
+        ok = 0
+        for text, res in zip(todo, new_results):
+            if "error" not in res:
+                ai_cache[_cache_key(text, model_name)] = res
+                ok += 1
+            else:
+                ai_error = res["error"]
+        if ok:
+            save_disk_cache(ai_cache)
+        if ok == 0:
+            st.session_state["ai_failed"] = ai_error
+            status.update(label="AI unavailable - using offline results", state="error")
+        else:
+            status.update(label=f"AI analysis done ({ok}/{len(todo)})", state="complete")
+elif st.session_state.get("ai_failed"):
+    ai_error = st.session_state["ai_failed"]
+
+if ai_error:
+    st.error(
+        f"❌ AI analysis failed: {ai_error}\n\nShowing fast offline results instead. "
+        "Use **Retry AI analysis** in the sidebar to try again."
+    )
+
+
+def _result_for(text: str):
+    key = _cache_key(text, model_name)
+    if not use_offline and key in ai_cache:
+        return ai_cache[key], "Gemini AI"
+    return rule_based_classify(text), "Offline rules"
+
+
+pairs = [_result_for(t) for t in analyzed_df["report"]]
+analyzed_df["category"] = [r.get("category", "Other") for r, _ in pairs]
+analyzed_df["severity"] = [r.get("severity", "Low") for r, _ in pairs]
+analyzed_df["keywords"] = [r.get("keywords", "") for r, _ in pairs]
+analyzed_df["summary"] = [r.get("summary", "") for r, _ in pairs]
+analyzed_df["engine"] = [e for _, e in pairs]
+
+n_offline = int((analyzed_df["engine"] == "Offline rules").sum())
+if n_offline:
+    st.caption(f"ℹ️ {n_offline} of {len(analyzed_df)} report(s) classified by fast offline rules (not AI).")
 
 
 # ---------------------------------------------------------------------------
@@ -333,8 +331,8 @@ col1.metric("Total Reports", len(analyzed_df))
 col2.metric("Number of Crops", analyzed_df["crop"].nunique())
 col3.metric("Number of Locations", analyzed_df["location"].nunique())
 
-if (analyzed_df["category"] != "Not analyzed").any():
-    most_common = analyzed_df[analyzed_df["category"] != "Not analyzed"]["category"].mode()
+if True:
+    most_common = analyzed_df["category"].mode()
     most_common_label = most_common.iloc[0] if not most_common.empty else "N/A"
 else:
     most_common_label = "N/A (AI disabled)"
@@ -381,7 +379,7 @@ st.markdown("---")
 st.header("📋 Farmer Reports")
 with st.expander("View cleaned & filtered dataset", expanded=True):
     st.dataframe(
-        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary"]],
+        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "engine"]],
         use_container_width=True,
         hide_index=True,
     )
