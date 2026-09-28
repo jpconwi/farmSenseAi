@@ -7,7 +7,7 @@ This is the main Streamlit application file.
 It is organized into clearly labeled sections so a beginner can follow along:
 
     1.  Page setup
-    2.  Load API key + create Gemini client
+    2.  Load API key + create DeepSeek client
     3.  Load and clean the dataset (Pandas)
     4.  Sidebar filters
     5.  Dashboard overview (metric cards)
@@ -43,7 +43,6 @@ from utils.ai_analysis import (
     load_disk_cache,
     save_disk_cache,
     _cache_key,
-    rule_based_classify,
 )
 
 # ---------------------------------------------------------------------------
@@ -60,11 +59,11 @@ REQUIRED_COLUMNS = ["date", "location", "crop", "report"]
 
 
 # ---------------------------------------------------------------------------
-# 2. LOAD API KEY + CREATE GEMINI CLIENT
+# 2. LOAD API KEY + CREATE DEEPSEEK CLIENT
 # ---------------------------------------------------------------------------
 def load_api_key() -> str:
     """
-    Reads the Gemini API key from Streamlit secrets.
+    Reads the DeepSeek API key from Streamlit secrets.
 
     Beginner note: st.secrets reads from the file .streamlit/secrets.toml
     (when running locally) or from the "Secrets" section of your app's
@@ -74,20 +73,20 @@ def load_api_key() -> str:
     ever share your code or push it to GitHub.
     """
     try:
-        return st.secrets["GEMINI_API_KEY"]
+        return st.secrets["DEEPSEEK_API_KEY"]
     except Exception:
         return ""
 
 
 def load_default_model() -> str:
     """
-    Reads the default Gemini model name from secrets (GEMINI_MODEL), if you
-    set one there. Falls back to "gemini-3.6-flash" if it isn't set.
+    Reads the default DeepSeek model name from secrets (DEEPSEEK_MODEL), if
+    you set one there. Falls back to "deepseek-chat" if it isn't set.
     """
     try:
-        return st.secrets["GEMINI_MODEL"]
+        return st.secrets["DEEPSEEK_MODEL"]
     except Exception:
-        return "gemini-3.6-flash"
+        return "deepseek-chat"
 
 
 api_key = load_api_key()
@@ -95,7 +94,7 @@ api_key_missing = not api_key
 
 if api_key_missing:
     st.sidebar.error(
-        "⚠️ No Gemini API key found.\n\n"
+        "⚠️ No DeepSeek API key found.\n\n"
         "AI features (report analysis + chatbot) will not work until you add "
         "your key to `.streamlit/secrets.toml` (see README.md)."
     )
@@ -103,21 +102,15 @@ if api_key_missing:
 client = get_client(api_key)
 
 default_model = load_default_model()
-model_options = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]
+model_options = ["deepseek-chat"]
 if default_model not in model_options:
     model_options.insert(0, default_model)  # make sure your secrets.toml choice is always selectable
 
 model_name = st.sidebar.selectbox(
     "AI Model", model_options, index=model_options.index(default_model),
-    help="gemini-3.6-flash is fast and inexpensive, good for this project.",
+    help="deepseek-chat is fast and inexpensive, good for this project.",
 )
 
-
-use_offline = st.sidebar.checkbox(
-    "⚡ Fast offline mode (no AI, instant)",
-    value=False,
-    help="Classifies with simple keyword rules. Instant, but less accurate than Gemini.",
-)
 if st.sidebar.button("🔄 Retry AI analysis"):
     for _k in [k for k in st.session_state if str(k).startswith("ai_failed")]:
         st.session_state.pop(_k)
@@ -264,7 +257,7 @@ if filtered_df.empty:
 #  * We send only UNIQUE report texts (many reports repeat the same sentence),
 #    in as few API calls as possible.
 #  * Results are cached in memory and on disk; each call has a timeout, and if
-#    the AI fails we show clearly-labelled offline results instead of waiting.
+#    the AI fails we show "Not analyzed" instead of waiting.
 if "ai_cache" not in st.session_state:
     st.session_state["ai_cache"] = load_disk_cache()
 ai_cache = st.session_state["ai_cache"]
@@ -273,11 +266,9 @@ unique_reports = list(dict.fromkeys(raw_df["report"].tolist()))
 todo = [r for r in unique_reports if _cache_key(r, model_name) not in ai_cache]
 ai_error = None
 
-if use_offline:
-    pass
-elif client is None:
+if client is None:
     st.warning(
-        "⚠️ No Gemini API key found - showing fast offline results. "
+        "⚠️ No DeepSeek API key found - reports will not be classified. "
         "Add your key (see README.md) for AI analysis."
     )
 elif todo and not st.session_state.get(f"ai_failed_{model_name}"):
@@ -297,7 +288,7 @@ elif todo and not st.session_state.get(f"ai_failed_{model_name}"):
             save_disk_cache(ai_cache)
         if ok == 0:
             st.session_state[f"ai_failed_{model_name}"] = ai_error
-            status.update(label="AI unavailable - using offline results", state="error")
+            status.update(label="AI analysis failed", state="error")
         else:
             status.update(label=f"AI analysis done ({ok}/{len(todo)})", state="complete")
 elif st.session_state.get(f"ai_failed_{model_name}"):
@@ -305,28 +296,28 @@ elif st.session_state.get(f"ai_failed_{model_name}"):
 
 if ai_error:
     st.error(
-        f"❌ AI analysis failed: {ai_error}\n\nShowing fast offline results instead. "
+        f"❌ AI analysis failed: {ai_error}\n\n"
         "Use **Retry AI analysis** in the sidebar to try again."
     )
 
 
 def _result_for(text: str):
+    """Return the cached AI result for a report, or a 'Not analyzed' placeholder."""
     key = _cache_key(text, model_name)
-    if not use_offline and key in ai_cache:
-        return ai_cache[key], "Gemini AI"
-    return rule_based_classify(text), "Offline rules"
+    if key in ai_cache:
+        return ai_cache[key]
+    return {"category": "Not analyzed", "severity": "—", "keywords": "", "summary": ""}
 
 
-pairs = [_result_for(t) for t in analyzed_df["report"]]
-analyzed_df["category"] = [r.get("category", "Other") for r, _ in pairs]
-analyzed_df["severity"] = [r.get("severity", "Low") for r, _ in pairs]
-analyzed_df["keywords"] = [r.get("keywords", "") for r, _ in pairs]
-analyzed_df["summary"] = [r.get("summary", "") for r, _ in pairs]
-analyzed_df["engine"] = [e for _, e in pairs]
+results = [_result_for(t) for t in analyzed_df["report"]]
+analyzed_df["category"] = [r.get("category", "Other") for r in results]
+analyzed_df["severity"] = [r.get("severity", "Low") for r in results]
+analyzed_df["keywords"] = [r.get("keywords", "") for r in results]
+analyzed_df["summary"] = [r.get("summary", "") for r in results]
 
-n_offline = int((analyzed_df["engine"] == "Offline rules").sum())
-if n_offline:
-    st.caption(f"ℹ️ {n_offline} of {len(analyzed_df)} report(s) classified by fast offline rules (not AI).")
+n_unanalyzed = int((analyzed_df["category"] == "Not analyzed").sum())
+if n_unanalyzed:
+    st.caption(f"ℹ️ {n_unanalyzed} of {len(analyzed_df)} report(s) have not been analyzed by AI yet.")
 
 
 # ---------------------------------------------------------------------------
@@ -339,11 +330,9 @@ col1.metric("Total Reports", len(analyzed_df))
 col2.metric("Number of Crops", analyzed_df["crop"].nunique())
 col3.metric("Number of Locations", analyzed_df["location"].nunique())
 
-if True:
-    most_common = analyzed_df["category"].mode()
-    most_common_label = most_common.iloc[0] if not most_common.empty else "N/A"
-else:
-    most_common_label = "N/A (AI disabled)"
+_analyzed_only = analyzed_df[analyzed_df["category"] != "Not analyzed"]
+most_common = _analyzed_only["category"].mode()
+most_common_label = most_common.iloc[0] if not most_common.empty else "N/A"
 col4.metric("Most Common Problem", most_common_label)
 
 st.markdown("---")
@@ -387,7 +376,7 @@ st.markdown("---")
 st.header("📋 Farmer Reports")
 with st.expander("View cleaned & filtered dataset", expanded=True):
     st.dataframe(
-        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "engine"]],
+        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary"]],
         use_container_width=True,
         hide_index=True,
     )
@@ -411,7 +400,7 @@ if st.button("🔎 Analyze Report"):
     if not new_report.strip():
         st.warning("Please type a report before clicking Analyze.")
     elif client is None:
-        st.error("❌ Cannot analyze: no valid Gemini API key found. See README.md to set it up.")
+        st.error("❌ Cannot analyze: no valid DeepSeek API key found. See README.md to set it up.")
     else:
         with st.spinner("Analyzing..."):
             result = analyze_report(client, new_report, model=model_name)
@@ -461,7 +450,7 @@ if user_question:
 
     with st.chat_message("assistant"):
         if client is None:
-            answer = "⚠️ Chatbot is unavailable because no valid Gemini API key was found. See README.md."
+            answer = "⚠️ Chatbot is unavailable because no valid DeepSeek API key was found. See README.md."
         else:
             with st.spinner("Thinking..."):
                 answer = ask_chatbot(client, user_question, dataset_summary, model=model_name)
@@ -470,4 +459,4 @@ if user_question:
     st.session_state.chat_history.append(("assistant", answer))
 
 st.markdown("---")
-st.caption("Built for CS 315 – Application Development and Emerging Technologies · Activity 3 · FarmSense AI")
+st.caption("Built for CS 315 – Application Development and Emerging Technologies · Activity 3 · FarmSense AI")

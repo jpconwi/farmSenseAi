@@ -1,16 +1,19 @@
 """
 utils/ai_analysis.py
 ---------------------
-This file contains ALL the functions that talk to the Google Gemini API.
+This file contains ALL the functions that talk to the DeepSeek API.
 
 Keeping these functions in a separate file (instead of putting everything
 inside app.py) makes the project easier to read and easier to test.
 
 Beginner note:
-    "GenAI" here means we send some text to Google's Gemini model (e.g.
-    gemini-3.6-flash) and ask it to return an answer. We always ask the
+    "GenAI" here means we send some text to the DeepSeek Chat model
+    (deepseek-chat) and ask it to return an answer. We always ask the
     model to reply in a very strict format (JSON) so that Python can read
     the answer reliably.
+
+    DeepSeek's API is OpenAI-compatible, so we use the official `openai`
+    Python package and just point it at https://api.deepseek.com.
 """
 
 import json
@@ -18,14 +21,15 @@ import os
 import re
 import time
 
-# We import the Google Gen AI library. If it isn't installed, the app will
-# show a friendly error instead of crashing (handled in app.py).
+# We import the OpenAI-compatible client library (used for DeepSeek). If it
+# isn't installed, the app will show a friendly error instead of crashing.
 try:
-    from google import genai
-    from google.genai import types
+    from openai import OpenAI
 except ImportError:
-    genai = None
-    types = None
+    OpenAI = None
+
+DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+DEFAULT_MODEL = "deepseek-chat"
 
 
 # Allowed categories. We keep this list in ONE place so app.py and this file
@@ -33,36 +37,36 @@ except ImportError:
 CATEGORIES = ["Pest", "Disease", "Water", "Weather", "Nutrient", "Other"]
 SEVERITIES = ["Low", "Moderate", "High"]
 
-# How many reports we bundle into a single API call. The free Gemini tier
-# allows only ~5 requests per minute, so bundling reports together (instead
-# of one request per report) is what keeps a 45-report dataset from
-# blowing through that quota. 15 keeps a typical ~45-report dataset to just
-# 3 calls total, comfortably under the 5/minute limit with no retry waits.
+# How many reports we bundle into a single API call. Bundling reports
+# together (instead of one request per report) keeps the number of API calls
+# small and the analysis fast.
 DEFAULT_GROUP_SIZE = 30
 
 # How many times we retry a single API call if we get a 429 (rate limit)
-# error, and how long we wait between retries if Google doesn't tell us.
+# error, and how long we wait between retries if the server doesn't tell us.
 MAX_RETRIES = 1            # was 3 - long retry loops were a cause of "stuck" analysis
 DEFAULT_RETRY_SECONDS = 10
 MAX_RETRY_WAIT = 15        # never sleep longer than this between retries
-REQUEST_TIMEOUT_MS = 30000 # give up on any single API call after 30 seconds
+REQUEST_TIMEOUT_S = 60     # give up on any single API call after 60 seconds
 
 
 def _is_rate_limit_error(exc: Exception) -> bool:
-    """True if this exception looks like a 429 RESOURCE_EXHAUSTED error."""
+    """True if this exception looks like a 429 (rate limit) error."""
     msg = str(exc)
-    return "429" in msg or "RESOURCE_EXHAUSTED" in msg
+    return getattr(exc, "status_code", None) == 429 or "429" in msg or "rate limit" in msg.lower()
 
 
 def _extract_retry_delay(exc: Exception, default: int = DEFAULT_RETRY_SECONDS) -> int:
     """
-    Gemini's 429 errors usually include a suggested wait time, e.g.
-    "retryDelay': '21s'". If we can find it, use it (plus a small buffer);
-    otherwise fall back to `default` seconds.
+    If the server sent a Retry-After header, use it (capped); otherwise fall
+    back to `default` seconds.
     """
-    match = re.search(r"retryDelay['\"]?\s*:\s*['\"]?(\d+)s", str(exc))
-    if match:
-        return min(int(match.group(1)) + 2, MAX_RETRY_WAIT)
+    try:
+        retry_after = exc.response.headers.get("retry-after")
+        if retry_after:
+            return min(int(float(retry_after)) + 1, MAX_RETRY_WAIT)
+    except Exception:
+        pass
     return min(default, MAX_RETRY_WAIT)
 
 
@@ -78,8 +82,7 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
             return fn()
         except Exception as e:
             last_exc = e
-            # A daily-quota 429 will not clear in seconds, so fail fast.
-            if _is_rate_limit_error(e) and "PerDay" not in str(e) and attempt < max_retries:
+            if _is_rate_limit_error(e) and attempt < max_retries:
                 time.sleep(_extract_retry_delay(e))
                 continue
             raise
@@ -88,31 +91,43 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
 
 def get_client(api_key: str):
     """
-    Create and return a Gemini client using the given API key.
+    Create and return a DeepSeek client using the given API key.
 
     Returns None if:
       - the api_key is empty
-      - the google-genai package failed to import
+      - the openai package failed to import
 
     Beginner note: we NEVER hard-code the API key in this file. It is always
-    passed in from app.py, which reads it from st.secrets["GEMINI_API_KEY"].
+    passed in from app.py, which reads it from st.secrets["DEEPSEEK_API_KEY"].
     """
     if not api_key:
         return None
-    if genai is None:
+    if OpenAI is None:
         return None
     try:
-        # The timeout stops a bad connection from freezing the app forever
-        # (by default the client waits with NO time limit).
-        try:
-            return genai.Client(
-                api_key=api_key,
-                http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
-            )
-        except Exception:
-            return genai.Client(api_key=api_key)
+        # The timeout stops a bad connection from freezing the app forever.
+        return OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL, timeout=REQUEST_TIMEOUT_S)
     except Exception:
         return None
+
+
+def _chat(client, model: str, prompt: str, temperature: float = 0, json_mode: bool = False) -> str:
+    """
+    One place that actually calls DeepSeek. Sends `prompt` as a single user
+    message and returns the reply text.
+
+    json_mode=True asks DeepSeek to return a valid JSON *object*.
+    """
+    kwargs = {}
+    if json_mode:
+        kwargs["response_format"] = {"type": "json_object"}
+    response = _call_with_retry(lambda: client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        **kwargs,
+    ))
+    return (response.choices[0].message.content or "").strip()
 
 
 def _extract_json(text: str):
@@ -128,7 +143,7 @@ def _extract_json(text: str):
     return json.loads(cleaned)
 
 
-def analyze_report(client, report_text: str, model: str = "gemini-3.6-flash") -> dict:
+def analyze_report(client, report_text: str, model: str = DEFAULT_MODEL) -> dict:
     """
     Send ONE farmer report to the AI and ask it to classify it.
 
@@ -145,7 +160,7 @@ def analyze_report(client, report_text: str, model: str = "gemini-3.6-flash") ->
     message. It NEVER makes up fake analysis results.
     """
     if client is None:
-        return {"error": "No Gemini client available. Please check your API key."}
+        return {"error": "No DeepSeek client available. Please check your API key."}
 
     if not report_text or not str(report_text).strip():
         return {"error": "Report text is empty, nothing to analyze."}
@@ -169,15 +184,7 @@ Farmer report:
 Respond with ONLY the JSON object."""
 
     try:
-        response = _call_with_retry(lambda: client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0,  # temperature=0 makes the answer more consistent
-                response_mime_type="application/json",  # asks Gemini to return raw JSON
-            ),
-        ))
-        raw_text = response.text
+        raw_text = _chat(client, model, prompt, temperature=0, json_mode=True)
         result = _extract_json(raw_text)
 
         # --- Validate the AI's response before trusting it ---
@@ -215,17 +222,18 @@ def _analyze_group(client, reports: list, model: str) -> list:
     group call fails, every entry in the returned list has "error" set.
     """
     if client is None:
-        return [{"error": "No Gemini client available. Please check your API key."} for _ in reports]
+        return [{"error": "No DeepSeek client available. Please check your API key."} for _ in reports]
 
     numbered = "\n".join(f'{i + 1}. """{text}"""' for i, text in enumerate(reports))
 
     prompt = f"""You are an agricultural assistant helping analyze farmer reports.
 
 Below is a numbered list of {len(reports)} farmer reports. Analyze EACH ONE
-and respond with ONLY a valid JSON array (no extra text, no markdown) with
-exactly {len(reports)} elements, in the SAME ORDER as the reports below.
+and respond with ONLY a valid JSON object (no extra text, no markdown) with a
+single key "results" whose value is an array of exactly {len(reports)}
+elements, in the SAME ORDER as the reports below.
 
-Each element must be an object with exactly these keys:
+Each element of the array must be an object with exactly these keys:
 - "category": must be exactly one of {CATEGORIES}
 - "severity": must be exactly one of {SEVERITIES}
 - "keywords": a short comma-separated string of important keywords (3-5 words)
@@ -234,18 +242,14 @@ Each element must be an object with exactly these keys:
 Farmer reports:
 {numbered}
 
-Respond with ONLY the JSON array, containing exactly {len(reports)} elements."""
+Respond with ONLY the JSON object: {{"results": [ ...exactly {len(reports)} elements... ]}}"""
 
     try:
-        response = _call_with_retry(lambda: client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0,
-                response_mime_type="application/json",
-            ),
-        ))
-        parsed = _extract_json(response.text)
+        raw_text = _chat(client, model, prompt, temperature=0, json_mode=True)
+        parsed = _extract_json(raw_text)
+        # DeepSeek's JSON mode returns an object, so unwrap {"results": [...]}
+        if isinstance(parsed, dict):
+            parsed = parsed.get("results", [])
         if not isinstance(parsed, list):
             raise ValueError("Expected a JSON array from the AI.")
 
@@ -275,13 +279,12 @@ Respond with ONLY the JSON array, containing exactly {len(reports)} elements."""
         return [{"error": f"AI request failed: {e}"} for _ in reports]
 
 
-def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash",
+def analyze_reports_batch(client, reports: list, model: str = DEFAULT_MODEL,
                            progress_callback=None, group_size: int = DEFAULT_GROUP_SIZE) -> list:
     """
     Classifies a list of report strings using the AI, sending `group_size`
     reports per API call (instead of one call per report). This dramatically
-    cuts the number of requests made - important because the free Gemini
-    tier only allows ~5 requests per minute.
+    cuts the number of requests made.
 
     progress_callback (optional): a function that accepts a float between
     0 and 1, used to update a Streamlit progress bar.
@@ -305,33 +308,6 @@ def analyze_reports_batch(client, reports: list, model: str = "gemini-3.6-flash"
             progress_callback((group_index + 1) / total_groups)
 
     return results
-
-
-# ---------------------------------------------------------------------------
-# FAST OFFLINE CLASSIFIER (no internet, no API key, instant)
-# ---------------------------------------------------------------------------
-# Used only as a clearly-labelled fallback when the AI is unavailable or slow.
-_RULES = [
-    ("Pest", ["insect", "worm", "beetle", "aphid", "caterpillar", "rat", "pest", "bug"]),
-    ("Disease", ["fungus", "mildew", "spot", "patch", "blight", "rot", "disease"]),
-    ("Water", ["dry", "water", "drought", "wilting", "wilt"]),
-    ("Weather", ["wind", "rain", "storm", "flood", "typhoon", "fell over"]),
-    ("Nutrient", ["nutrient", "fertilizer", "pale", "yellow", "deficien"]),
-]
-_HIGH = ["dying", "flooded", "damaged", "fell over", "knocked", "spreading quickly", "boring"]
-_MOD = ["many", "several", "wilting", "curling", "fewer", "drooping"]
-
-
-def rule_based_classify(report_text: str) -> dict:
-    """Keyword-based classification. Same output shape as the AI result."""
-    t = str(report_text).lower()
-    category = "Other"
-    for cat, words in _RULES:
-        if any(w in t for w in words):
-            category = cat
-            break
-    severity = "High" if any(w in t for w in _HIGH) else "Moderate" if any(w in t for w in _MOD) else "Low"
-    return {"category": category, "severity": severity, "keywords": "", "summary": str(report_text).strip()}
 
 
 # ---------------------------------------------------------------------------
@@ -429,7 +405,7 @@ def build_dataset_summary(df, max_chars: int = 4000) -> str:
     return summary
 
 
-def ask_chatbot(client, question: str, dataset_summary: str, model: str = "gemini-3.6-flash") -> str:
+def ask_chatbot(client, question: str, dataset_summary: str, model: str = DEFAULT_MODEL) -> str:
     """
     Sends the user's question, together with the summarized dataset, to the
     AI and returns a plain-text answer.
@@ -438,7 +414,7 @@ def ask_chatbot(client, question: str, dataset_summary: str, model: str = "gemin
     so if it cannot answer - this prevents the chatbot from making up facts.
     """
     if client is None:
-        return "⚠️ AI chatbot is unavailable because no valid Gemini API key was found."
+        return "⚠️ AI chatbot is unavailable because no valid DeepSeek API key was found."
 
     if not question or not question.strip():
         return "Please type a question first."
@@ -458,11 +434,6 @@ Question: {question}
 Give a short, clear, direct answer."""
 
     try:
-        response = _call_with_retry(lambda: client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(temperature=0.2),
-        ))
-        return response.text.strip()
+        return _chat(client, model, prompt, temperature=0.2)
     except Exception as e:
         return f"⚠️ Could not get an answer from the AI right now. ({e})"
