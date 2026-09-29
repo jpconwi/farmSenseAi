@@ -18,6 +18,7 @@ It is organized into clearly labeled sections so a beginner can follow along:
 
 Run this file with:  streamlit run app.py
 python -m streamlit run app.py
+
 """
 
 import os
@@ -363,20 +364,24 @@ n_unanalyzed = int((analyzed_df["category"] == "Not analyzed").sum())
 if n_unanalyzed:
     st.caption(f"ℹ️ {n_unanalyzed} of {len(analyzed_df)} report(s) have not been analyzed by AI yet.")
 
-# --- Sentiment (cardiffnlp model; works with the Hugging Face provider only) ---
+# --- Sentiment (cardiffnlp model, with chat models as backup; Hugging Face only) ---
 if client is not None and not use_ollama:
     todo_sent = [r for r in unique_reports if _cache_key(r, SENTIMENT_MODEL) not in ai_cache]
     if todo_sent and not st.session_state.get("ai_failed_sentiment"):
         with st.spinner("Analyzing sentiment..."):
-            labels, sent_err = analyze_sentiments(client, todo_sent)
+            labels, sent_err, sent_src = analyze_sentiments(client, todo_sent, fallback_models=MODEL_CHAIN)
         if sent_err:
             st.session_state["ai_failed_sentiment"] = sent_err
         else:
             for text, label in zip(todo_sent, labels):
                 ai_cache[_cache_key(text, SENTIMENT_MODEL)] = label
             save_disk_cache(ai_cache)
+            if sent_src != SENTIMENT_MODEL:
+                st.session_state["sentiment_note"] = f"Sentiment labeled by backup model `{sent_src}` ({SENTIMENT_MODEL} was unavailable)."
     if st.session_state.get("ai_failed_sentiment"):
-        st.caption(f"⚠️ Sentiment unavailable: {st.session_state['ai_failed_sentiment'][:200]}")
+        st.caption(f"⚠️ Sentiment unavailable: {st.session_state['ai_failed_sentiment'][:300]}")
+    elif st.session_state.get("sentiment_note"):
+        st.caption(f"ℹ️ {st.session_state['sentiment_note']}")
 
 analyzed_df["sentiment"] = [ai_cache.get(_cache_key(t, SENTIMENT_MODEL), "—") for t in analyzed_df["report"]]
 

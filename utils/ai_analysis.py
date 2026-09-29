@@ -378,39 +378,104 @@ def analyze_reports_batch(client, reports: list, model: str = MODEL_NAME,
 # ---------------------------------------------------------------------------
 # SENTIMENT (cardiffnlp/twitter-roberta-base-sentiment-latest)
 # ---------------------------------------------------------------------------
-def analyze_sentiments(client, texts: list, model: str = SENTIMENT_MODEL):
-    """
-    Labels each text as "positive", "neutral" or "negative" using a small
-    text-classification model on Hugging Face.
+_SENTIMENT_LABELS = ("positive", "neutral", "negative")
+_LABEL_FIX = {"label_0": "negative", "label_1": "neutral", "label_2": "positive"}
 
-    Returns (labels, error): `labels` is a list the same length as `texts`
-    (or [] on failure) and `error` is None or a readable message.
+
+def _norm_sentiment(label) -> str:
+    """Turn whatever a model returned into positive / neutral / negative."""
+    if isinstance(label, dict):
+        label = label.get("sentiment") or label.get("label") or ""
+    label = str(label).strip().lower()
+    label = _LABEL_FIX.get(label, label)
+    return label if label in _SENTIMENT_LABELS else "neutral"
+
+
+def _sentiment_classifier(client, texts: list, model: str) -> list:
     """
-    if not isinstance(client, HFClient):
-        return [], "Sentiment needs the Hugging Face provider."
-    if not texts:
-        return [], None
-    try:
-        r = _call_with_retry(lambda: requests.post(
-            f"https://router.huggingface.co/hf-inference/models/{model}",
+    Sentiment with the cardiffnlp text-classification model. The Hugging Face
+    API takes ONE text per request, so we send the (few) unique reports one
+    by one. Raises an error on the first failed request.
+    """
+    url = f"https://router.huggingface.co/hf-inference/models/{model}"
+
+    def post_one(text):
+        r = requests.post(
+            url,
             headers={"Authorization": f"Bearer {client.api_key}"},
-            json={"inputs": [t[:1500] for t in texts]},
+            json={"inputs": text[:1500]},
             timeout=REQUEST_TIMEOUT_S,
-        ))
+        )
         if r.status_code != 200:
             raise RuntimeError(f"Hugging Face error {r.status_code}: {r.text[:200]}")
-        data = r.json()
-        labels = []
-        for item in data:
-            # each item is a list of {"label":..., "score":...} (or one dict)
-            scores = item if isinstance(item, list) else [item]
-            best = max(scores, key=lambda d: d.get("score", 0))
-            labels.append(str(best.get("label", "neutral")).lower())
-        if len(labels) != len(texts):
-            raise ValueError("Unexpected number of sentiment results.")
-        return labels, None
-    except Exception as e:
-        return [], f"Sentiment request failed: {e}"
+        return r.json()
+
+    labels = []
+    for text in texts:
+        data = _call_with_retry(lambda t=text: post_one(t))
+        scores = data[0] if data and isinstance(data[0], list) else data
+        best = max(scores, key=lambda d: d.get("score", 0))
+        labels.append(_norm_sentiment(best.get("label", "neutral")))
+    return labels
+
+
+def _sentiment_chat(client, texts: list, models: list):
+    """
+    Backup: ask a chat model (trying each one in `models` in turn) to label the
+    sentiment. Returns (labels, model_used); raises the last error if all fail.
+    """
+    last_exc = None
+    for m in models:
+        try:
+            labels = []
+            for i in range(0, len(texts), DEFAULT_GROUP_SIZE):
+                chunk = texts[i:i + DEFAULT_GROUP_SIZE]
+                numbered = "\n".join(f'{j + 1}. """{t}"""' for j, t in enumerate(chunk))
+                prompt = f"""Label the sentiment of each of the {len(chunk)} farmer reports below as
+exactly one of: "positive", "neutral", "negative".
+Respond with ONLY a JSON array of {len(chunk)} strings, in the same order.
+
+Reports:
+{numbered}"""
+                raw = _call_with_retry(lambda: _generate(client, m, prompt, 0, True))
+                parsed = _extract_json(raw)
+                if isinstance(parsed, dict):
+                    parsed = next((v for v in parsed.values() if isinstance(v, list)), parsed)
+                if not isinstance(parsed, list) or len(parsed) != len(chunk):
+                    raise ValueError("Unexpected sentiment answer from the AI.")
+                labels.extend(_norm_sentiment(x) for x in parsed)
+            return labels, m
+        except Exception as e:
+            last_exc = e
+    raise last_exc
+
+
+def analyze_sentiments(client, texts: list, model: str = SENTIMENT_MODEL, fallback_models: list = None):
+    """
+    Labels each text "positive", "neutral" or "negative".
+
+    First tries the cardiffnlp sentiment model on Hugging Face. If that fails
+    (model not available, no permission, etc.) and `fallback_models` is given,
+    it asks the chat models instead, one after another.
+
+    Returns (labels, error, source): `labels` is a list the same length as
+    `texts` (or [] on failure), `error` is None or a readable message, and
+    `source` is the name of the model that produced the labels.
+    """
+    if not isinstance(client, HFClient):
+        return [], "Sentiment needs the Hugging Face provider.", None
+    if not texts:
+        return [], None, model
+    try:
+        return _sentiment_classifier(client, texts, model), None, model
+    except Exception as first_err:
+        if fallback_models:
+            try:
+                labels, used = _sentiment_chat(client, texts, list(fallback_models))
+                return labels, None, used
+            except Exception as e:
+                return [], f"{model} failed ({str(first_err)[:120]}); chat models also failed ({str(e)[:120]})", None
+        return [], f"Sentiment request failed: {first_err}", None
 
 
 # ---------------------------------------------------------------------------
