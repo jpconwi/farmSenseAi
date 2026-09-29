@@ -646,7 +646,13 @@ if st.button("🔎 Analyze Report"):
             r_col2.metric("Severity", result["severity"])
             r_col3.metric("Keywords", result["keywords"] or "—")
             st.markdown(f"**Summary:** {result['summary']}")
-            _dx = diagnose(new_crop if new_crop != "(not sure)" else None, new_report, category=result["category"])
+            _crop_arg = new_crop if new_crop != "(not sure)" else None
+            try:
+                _dx = diagnose(_crop_arg, new_report, category=result["category"])
+            except TypeError:
+                # utils/knowledge.py is an OLD copy without the `category` option: update that file too.
+                _dx = diagnose(_crop_arg, new_report)
+                st.caption("⚠️ `utils/knowledge.py` is out of date. Replace it with the new version so the diagnosis matches the AI category.")
             st.markdown(f"#### 🩺 Likely problem: {_dx['name']}  ·  *{_dx['type']}*")
             st.markdown(f"**What it is:** {_dx['agent']}\n\n**Symptoms:** {_dx['symptoms']}\n\n**Causes:** {_dx['causes']}\n\n"
                         f"**What to do now:** {_dx['treatment']}\n\n**Prevention:** {_dx['prevention']}")
