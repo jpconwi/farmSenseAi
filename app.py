@@ -664,12 +664,43 @@ st.caption(
     "Ask about the filtered data above. Counts, rankings, trends and lists are calculated **exactly** from the data. "
     "Ask about **diseases, causes, treatment or prevention** to get the specific problem and full information."
 )
-SUGGESTED = ["Which crop has the most reports?", "What kind of diseases are in the reports?", "What are the causes and treatment for the rice disease?",
-             "Which location has the most pest problems?", "How many high severity reports are there?", "Show the latest urgent reports"]
-_bcols = st.columns(3) + st.columns(3)
-for _i, (_c, _q) in enumerate(zip(_bcols, SUGGESTED)):
-    if _c.button(_q, use_container_width=True, key=f"sugg_{_i}"):
-        st.session_state["pending_q"] = _q
+# Suggested questions - built from the data currently shown, so they always make sense for the filter
+_top_crop = analyzed_df["crop"].value_counts().index[0]
+_top_loc = analyzed_df["location"].value_counts().index[0]
+_other_crops = [c for c in analyzed_df["crop"].value_counts().index if c != _top_crop]
+SUGGESTED = {
+    "📊 Numbers & trends": [
+        "Which crop has the most reports?",
+        "Which location has the most reports?",
+        "Are reports increasing over time?",
+        f"Show the latest reports from {_top_loc}",
+        "How many reports are there per crop?",
+        "Which location has the most pest problems?",
+    ],
+    "🦠 Diseases & treatment": [
+        "What kind of diseases are in the reports?",
+        f"What is the most common problem for {_top_crop}?",
+        f"What are the causes and treatment for the {_top_crop} problems?",
+        f"What is the most common problem in {_top_loc}?",
+        "Show all diseases",
+        "How many high severity reports are there?",
+    ],
+    "🤖 Ask the AI (open-ended)": [
+        "Summarize the main concerns farmers are reporting",
+        "Are there any unusual patterns in the reports?",
+        "Which farmers are most in need of support right now?",
+        "Write a short summary for the municipal agriculture office",
+    ] + ([f"Compare {_top_crop} and {_other_crops[0]} reports"] if _other_crops else []),
+}
+st.markdown("**💡 Suggested questions** - click one to ask it:")
+for _tab, (_title, _qs) in zip(st.tabs(list(SUGGESTED)), SUGGESTED.items()):
+    with _tab:
+        if _title.startswith("🤖"):
+            st.caption("These are open-ended, so they are answered by the AI reading the report rows (needs an AI provider).")
+        _bcols = st.columns(2) + st.columns(2) + st.columns(2)
+        for _i, (_c, _q) in enumerate(zip(_bcols, _qs)):
+            if _c.button(_q, use_container_width=True, key=f"sugg_{_title[:2]}_{_i}"):
+                st.session_state["pending_q"] = _q
 
 chat_context = build_chat_context(analyzed_df)
 with st.expander("See the exact data the chatbot uses (for transparency)"):
