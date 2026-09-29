@@ -7,7 +7,7 @@ This is the main Streamlit application file.
 It is organized into clearly labeled sections so a beginner can follow along:
 
     1.  Page setup
-    2.  Load API key + create DeepSeek client
+    2.  Choose AI provider (Hugging Face or Ollama) + create client
     3.  Load and clean the dataset (Pandas)
     4.  Sidebar filters
     5.  Dashboard overview (metric cards)
@@ -43,6 +43,12 @@ from utils.ai_analysis import (
     load_disk_cache,
     save_disk_cache,
     _cache_key,
+    OllamaClient,
+    ollama_list_models,
+    analyze_sentiments,
+    MODEL_NAME,
+    MODEL_CHAIN,
+    SENTIMENT_MODEL,
 )
 
 # ---------------------------------------------------------------------------
@@ -59,69 +65,67 @@ REQUIRED_COLUMNS = ["date", "location", "crop", "report"]
 
 
 # ---------------------------------------------------------------------------
-# 2. LOAD API KEY + CREATE DEEPSEEK CLIENT
+# 2. CHOOSE AI PROVIDER + CREATE CLIENT
 # ---------------------------------------------------------------------------
 def load_api_key() -> str:
     """
-    Reads the DeepSeek API key from Streamlit secrets.
+    Reads your Hugging Face API token from Streamlit secrets.
 
     Beginner note: st.secrets reads from the file .streamlit/secrets.toml
     (when running locally) or from the "Secrets" section of your app's
     settings (when deployed on Streamlit Community Cloud).
 
-    We NEVER hard-code the key in this file - that would be unsafe if you
+    We NEVER hard-code the token in this file - that would be unsafe if you
     ever share your code or push it to GitHub.
     """
     try:
-        return st.secrets["DEEPSEEK_API_KEY"]
-    except Exception:
-        return ""
-
-
-def load_default_model() -> str:
-    """
-    Reads the default DeepSeek model name from secrets (DEEPSEEK_MODEL), if
-    you set one there. Falls back to "deepseek-chat" if it isn't set.
-    """
-    try:
-        return st.secrets["DEEPSEEK_MODEL"]
-    except Exception:
-        return "deepseek-chat"
-
-
-def load_base_url() -> str:
-    """
-    Reads an optional API base URL from secrets (DEEPSEEK_BASE_URL). Leave it
-    out to use DeepSeek's own API; set it if your key/model comes from another
-    OpenAI-compatible provider that hosts DeepSeek models.
-    """
-    try:
-        return st.secrets["DEEPSEEK_BASE_URL"]
+        return str(st.secrets["HF_TOKEN"]).strip()
     except Exception:
         return ""
 
 
 api_key = load_api_key()
-api_key_missing = not api_key
+PLACEHOLDER_TOKEN = "hf_your_token_here"
 
-if api_key_missing:
-    st.sidebar.error(
-        "⚠️ No DeepSeek API key found.\n\n"
-        "AI features (report analysis + chatbot) will not work until you add "
-        "your key to `.streamlit/secrets.toml` (see README.md)."
-    )
-
-client = get_client(api_key, load_base_url())
-
-default_model = load_default_model()
-model_options = ["deepseek-chat"]
-if default_model not in model_options:
-    model_options.insert(0, default_model)  # make sure your secrets.toml choice is always selectable
-
-model_name = st.sidebar.selectbox(
-    "AI Model", model_options, index=model_options.index(default_model),
-    help="Set DEEPSEEK_MODEL in secrets.toml to use a different model name.",
+provider = st.sidebar.selectbox(
+    "AI Provider", ["Hugging Face (cloud)", "Ollama (local)"],
+    help="Ollama runs the AI on YOUR computer: no quota, no token. "
+         "It only works when the app runs on the same computer as Ollama.",
 )
+use_ollama = provider.startswith("Ollama")
+
+if use_ollama:
+    ollama_host = st.sidebar.text_input("Ollama address", "http://localhost:11434")
+    installed = ollama_list_models(ollama_host)
+    if installed:
+        client = OllamaClient(ollama_host)
+        model_name = st.sidebar.selectbox("Ollama model", installed)
+    else:
+        client = None
+        model_name = "(none)"
+        st.sidebar.error(
+            "⚠️ Cannot reach Ollama (or no models installed).\n\n"
+            "Start it with `ollama serve`, install a model with e.g. "
+            "`ollama pull llama3.2:3b`, and run this app on the same computer. "
+            "Ollama on your laptop is NOT reachable from Streamlit Cloud."
+        )
+else:
+    if not api_key:
+        st.sidebar.error(
+            "⚠️ No Hugging Face token found.\n\n"
+            "Make sure `.streamlit/secrets.toml` exists inside the SAME folder "
+            "as `app.py`, contains a line `HF_TOKEN = \"hf_...\"`, then stop and "
+            "restart `streamlit run app.py`. (See README.md.)"
+        )
+    elif api_key == PLACEHOLDER_TOKEN:
+        st.sidebar.error("⚠️ `HF_TOKEN` is still the placeholder. Paste your real token in `secrets.toml`.")
+    client = get_client(api_key) if api_key and api_key != PLACEHOLDER_TOKEN else None
+    model_name = MODEL_NAME  # first choice; the others are automatic fallbacks
+    st.sidebar.caption("🤖 AI models (auto-fallback):\n\n" + "\n".join(
+        f"{i}. `{m}`" for i, m in enumerate(MODEL_CHAIN, 1)
+    ))
+    st.sidebar.caption(f"😊 Sentiment model: `{SENTIMENT_MODEL}`")
+
 
 if st.sidebar.button("🔄 Retry AI analysis"):
     for _k in [k for k in st.session_state if str(k).startswith("ai_failed")]:
@@ -275,49 +279,76 @@ if "ai_cache" not in st.session_state:
 ai_cache = st.session_state["ai_cache"]
 
 unique_reports = list(dict.fromkeys(raw_df["report"].tolist()))
-todo = [r for r in unique_reports if _cache_key(r, model_name) not in ai_cache]
+
+# Models to try, in order. With Hugging Face, if one model fails we
+# automatically move on to the next; Ollama uses just the model you picked.
+model_order = [model_name] if use_ollama else list(MODEL_CHAIN)
+
+
+def _cached_under(m: str) -> bool:
+    return any(_cache_key(r, m) in ai_cache for r in unique_reports)
+
+
+todo = [r for r in unique_reports if not any(_cache_key(r, m) in ai_cache for m in model_order)]
 ai_error = None
+working_model = next((m for m in model_order if _cached_under(m)), model_name)
 
 if client is None:
     st.warning(
-        "⚠️ No DeepSeek API key found - reports will not be classified. "
-        "Add your key (see README.md) for AI analysis."
+        "⚠️ Ollama is not reachable - reports will not be classified. " if use_ollama else
+        "⚠️ No valid Hugging Face token - reports will not be classified. Add your token (see README.md)."
     )
-elif todo and not st.session_state.get(f"ai_failed_{model_name}"):
+elif todo:
+    tried_errors = {}
     with st.status(f"Analyzing {len(todo)} unique report(s) with AI...", expanded=True) as status:
-        progress_bar = st.progress(0.0)
-        new_results = analyze_reports_batch(
-            client, todo, model=model_name, progress_callback=progress_bar.progress
-        )
-        ok = 0
-        for text, res in zip(todo, new_results):
-            if "error" not in res:
-                ai_cache[_cache_key(text, model_name)] = res
-                ok += 1
-            else:
-                ai_error = res["error"]
-        if ok:
-            save_disk_cache(ai_cache)
-        if ok == 0:
-            st.session_state[f"ai_failed_{model_name}"] = ai_error
-            status.update(label="AI analysis failed", state="error")
+        for m in model_order:
+            if st.session_state.get(f"ai_failed_{m}"):
+                tried_errors[m] = st.session_state[f"ai_failed_{m}"]
+                continue
+            status.update(label=f"Analyzing {len(todo)} unique report(s) with {m}...")
+            progress_bar = st.progress(0.0)
+            new_results = analyze_reports_batch(
+                client, todo, model=m, progress_callback=progress_bar.progress,
+            )
+            ok = 0
+            err = None
+            for text, res in zip(todo, new_results):
+                if "error" not in res:
+                    ai_cache[_cache_key(text, m)] = res
+                    ok += 1
+                else:
+                    err = res["error"]
+            if ok:
+                save_disk_cache(ai_cache)
+                working_model = m
+                note = "" if m == model_order[0] else f" (auto-switched from {model_order[0]})"
+                status.update(label=f"AI analysis done with {m}{note}", state="complete")
+                break
+            st.session_state[f"ai_failed_{m}"] = err
+            tried_errors[m] = err
         else:
-            status.update(label=f"AI analysis done ({ok}/{len(todo)})", state="complete")
-elif st.session_state.get(f"ai_failed_{model_name}"):
-    ai_error = st.session_state[f"ai_failed_{model_name}"]
-
+            status.update(label="AI analysis failed on every model", state="error")
+            ai_error = " | ".join(f"{m}: {str(e)[:200]}" for m, e in tried_errors.items())
 if ai_error:
     st.error(
-        f"❌ AI analysis failed: {ai_error}\n\n"
-        "Use **Retry AI analysis** in the sidebar to try again."
+        f"❌ AI analysis failed on every model.\n\n{ai_error}\n\n"
+        "Check your Hugging Face token and credits (or that Ollama is running), "
+        "then use **Retry AI analysis** in the sidebar."
     )
+    if "not supported by any provider" in ai_error:
+        st.info(
+            "💡 This model isn't served by any Hugging Face Inference Provider. "
+            "Change `MODEL_NAME` at the top of `utils/ai_analysis.py` to a model that is, "
+            "e.g. `Qwen/Qwen3-8B` or `meta-llama/Llama-3.1-8B-Instruct`."
+        )
 
 
 def _result_for(text: str):
     """Return the cached AI result for a report, or a 'Not analyzed' placeholder."""
-    key = _cache_key(text, model_name)
-    if key in ai_cache:
-        return ai_cache[key]
+    for m in model_order:
+        key = _cache_key(text, m)
+        if key in ai_cache:
+            return ai_cache[key]
     return {"category": "Not analyzed", "severity": "—", "keywords": "", "summary": ""}
 
 
@@ -330,6 +361,23 @@ analyzed_df["summary"] = [r.get("summary", "") for r in results]
 n_unanalyzed = int((analyzed_df["category"] == "Not analyzed").sum())
 if n_unanalyzed:
     st.caption(f"ℹ️ {n_unanalyzed} of {len(analyzed_df)} report(s) have not been analyzed by AI yet.")
+
+# --- Sentiment (cardiffnlp model; works with the Hugging Face provider only) ---
+if client is not None and not use_ollama:
+    todo_sent = [r for r in unique_reports if _cache_key(r, SENTIMENT_MODEL) not in ai_cache]
+    if todo_sent and not st.session_state.get("ai_failed_sentiment"):
+        with st.spinner("Analyzing sentiment..."):
+            labels, sent_err = analyze_sentiments(client, todo_sent)
+        if sent_err:
+            st.session_state["ai_failed_sentiment"] = sent_err
+        else:
+            for text, label in zip(todo_sent, labels):
+                ai_cache[_cache_key(text, SENTIMENT_MODEL)] = label
+            save_disk_cache(ai_cache)
+    if st.session_state.get("ai_failed_sentiment"):
+        st.caption(f"⚠️ Sentiment unavailable: {st.session_state['ai_failed_sentiment'][:200]}")
+
+analyzed_df["sentiment"] = [ai_cache.get(_cache_key(t, SENTIMENT_MODEL), "—") for t in analyzed_df["report"]]
 
 
 # ---------------------------------------------------------------------------
@@ -379,6 +427,16 @@ if (analyzed_df["category"] != "Not analyzed").any():
 else:
     st.info("Problem category chart is unavailable because AI analysis has not run (no API key).")
 
+st.subheader("😊 Report Sentiment")
+_sent = analyzed_df[analyzed_df["sentiment"] != "—"]
+if not _sent.empty:
+    sent_counts = _sent["sentiment"].value_counts().reset_index()
+    sent_counts.columns = ["sentiment", "count"]
+    fig_sent = px.bar(sent_counts, x="sentiment", y="count", color="sentiment", title="Reports by Sentiment")
+    st.plotly_chart(fig_sent, use_container_width=True)
+else:
+    st.info("Sentiment chart is unavailable (needs the Hugging Face provider and a working token).")
+
 st.markdown("---")
 
 
@@ -388,7 +446,7 @@ st.markdown("---")
 st.header("📋 Farmer Reports")
 with st.expander("View cleaned & filtered dataset", expanded=True):
     st.dataframe(
-        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary"]],
+        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "sentiment"]],
         use_container_width=True,
         hide_index=True,
     )
@@ -408,14 +466,26 @@ new_report = st.text_area(
     height=100,
 )
 
+def _with_fallback(call):
+    """Try the working model first, then the other models, until one works."""
+    order = [working_model] + [m for m in model_order if m != working_model]
+    out = None
+    for m in order:
+        out = call(m)
+        failed = (isinstance(out, dict) and "error" in out) or (isinstance(out, str) and out.startswith("⚠️"))
+        if not failed:
+            return out
+    return out
+
+
 if st.button("🔎 Analyze Report"):
     if not new_report.strip():
         st.warning("Please type a report before clicking Analyze.")
     elif client is None:
-        st.error("❌ Cannot analyze: no valid DeepSeek API key found. See README.md to set it up.")
+        st.error("❌ Cannot analyze: no valid Hugging Face token found. See README.md to set it up.")
     else:
         with st.spinner("Analyzing..."):
-            result = analyze_report(client, new_report, model=model_name)
+            result = _with_fallback(lambda m: analyze_report(client, new_report, model=m))
 
         if "error" in result:
             st.error(f"❌ {result['error']}")
@@ -462,13 +532,13 @@ if user_question:
 
     with st.chat_message("assistant"):
         if client is None:
-            answer = "⚠️ Chatbot is unavailable because no valid DeepSeek API key was found. See README.md."
+            answer = "⚠️ Chatbot is unavailable because no valid Hugging Face token was found. See README.md."
         else:
             with st.spinner("Thinking..."):
-                answer = ask_chatbot(client, user_question, dataset_summary, model=model_name)
+                answer = _with_fallback(lambda m: ask_chatbot(client, user_question, dataset_summary, model=m))
         st.write(answer)
 
     st.session_state.chat_history.append(("assistant", answer))
 
 st.markdown("---")
-st.caption("Built for CS 315 – Application Development and Emerging Technologies · Activity 3 · FarmSense AI")
+st.caption("Built for CS 315 – Application Development and Emerging Technologies · Activity 3 · FarmSense AI")

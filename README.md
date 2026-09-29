@@ -6,7 +6,7 @@
 
 FarmSense AI is a GenAI-powered Streamlit application that analyzes farmer
 reports about agricultural problems. It loads a CSV dataset of unstructured
-farmer reports, cleans it with Pandas, uses the DeepSeek API to classify and
+farmer reports, cleans it with Pandas, uses AI models on Hugging Face Inference Providers (Qwen2.5-7B-Instruct first, then automatic fallbacks Qwen3-8B and Llama-3.1-8B-Instruct) plus a sentiment model to classify and
 summarize each report, displays interactive charts, and includes an AI
 chatbot that can answer questions about the dataset.
 
@@ -51,7 +51,7 @@ file with your own data as long as you keep the same 4 columns.
 - **Python 3**
 - **Streamlit** — the web app framework/UI
 - **Pandas** — data loading and cleaning
-- **DeepSeek API** (`deepseek-chat` model, via the OpenAI-compatible `openai` Python package) — GenAI classification,
+- **Hugging Face Inference Providers** (chat models `Qwen/Qwen2.5-7B-Instruct` → `Qwen/Qwen3-8B` → `meta-llama/Llama-3.1-8B-Instruct`, tried in that order, plus `cardiffnlp/twitter-roberta-base-sentiment-latest` for sentiment; via the `requests` Python package) — GenAI classification,
   summary, and chatbot
 - **Plotly** — interactive charts
 
@@ -69,10 +69,10 @@ FarmSenseAI/
 │
 ├── utils/
 │   ├── __init__.py            # Makes "utils" an importable Python package
-│   └── ai_analysis.py         # All functions that call the DeepSeek API
+│   └── ai_analysis.py         # All functions that call the AI model
 │
 └── .streamlit/
-    └── secrets.toml           # Your DeepSeek API key goes here (kept private)
+    └── secrets.toml           # Your Hugging Face token goes here (kept private)
 ```
 
 Where each file goes, in plain terms:
@@ -105,22 +105,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 7. How to Configure the DeepSeek API Key
+## 7. How to Configure the Hugging Face Token
 
-1. Get an API key from https://platform.deepseek.com/api_keys (sign in and
-   top up a small balance if required).
+1. Create a token at https://huggingface.co/settings/tokens (sign in to
+   Hugging Face, choose a **fine-grained** token, and tick the
+   **"Make calls to Inference Providers"** permission).
 2. Open `.streamlit/secrets.toml` in a text editor.
-3. Replace the placeholder with your real key:
+3. Replace the placeholder with your real token:
    ```toml
-   DEEPSEEK_API_KEY = "your-real-key-here"
-   DEEPSEEK_MODEL = "deepseek-chat"
+   HF_TOKEN = "hf_your_token_here"
    ```
 4. Save the file. **Do not share this file or upload it to GitHub** — the
    included `.gitignore` already excludes it for you.
 5. ⚠️ If your key was ever pasted into a chat, document, or committed to a
    public repo by mistake, treat it as compromised: go back to
-   https://platform.deepseek.com/api_keys and delete/regenerate it, then
+   https://huggingface.co/settings/tokens and delete/regenerate it, then
    update `secrets.toml` with the new one.
+
+**Prefer to run the AI on your own computer?** Install Ollama, run
+`ollama pull llama3.2:3b`, then pick **Ollama (local)** in the app sidebar.
+No token is needed, but it only works when the app runs on the same computer
+(not on Streamlit Cloud).
 
 If you skip this step, the app will still run — it will show the raw
 dataset and charts, but AI classification and the chatbot will be disabled
@@ -159,8 +164,7 @@ doesn't, copy that URL into your browser manually.
 5. Before clicking Deploy, open **"Advanced settings" → "Secrets"** and
    paste:
    ```toml
-   DEEPSEEK_API_KEY = "your-real-key-here"
-   DEEPSEEK_MODEL = "deepseek-chat"
+   HF_TOKEN = "hf_your_token_here"
    ```
 6. Click **Deploy**. Streamlit Cloud will install `requirements.txt`
    automatically and launch your app with a public URL.
@@ -170,8 +174,8 @@ doesn't, copy that URL into your browser manually.
 | Problem | Likely Cause | Solution |
 |---|---|---|
 | "Could not find the dataset file" | CSV missing or wrong location | Make sure `farmer_reports.csv` is inside `data/` |
-| "No DeepSeek API key found" | `secrets.toml` not set up | Follow section 7 above |
-| "AI request failed" | Invalid key, no internet, or the DeepSeek API is down | Check your key, check your internet connection, try again later |
+| "No Hugging Face token found" | `secrets.toml` not set up | Follow section 7 above |
+| "AI request failed" | Invalid key, no internet, or the Hugging Face service is down | Check your key, check your internet connection, try again later |
 | "ModuleNotFoundError: No module named 'utils'" | The `utils/` folder wasn't pushed to GitHub | Confirm `utils/__init__.py` and `utils/ai_analysis.py` appear in your GitHub repo, then reboot the app |
 | "The AI returned a response that wasn't valid JSON" | Rare AI formatting hiccup | Click Analyze again — the app never crashes, it just skips that report |
 | App won't start / `ModuleNotFoundError` | Packages not installed | Run `pip install -r requirements.txt` again inside your activated virtual environment |
@@ -192,7 +196,7 @@ doesn't, copy that URL into your browser manually.
 | Requirement | Where it's implemented |
 |---|---|
 | Dataset loading & cleaning with Pandas | `load_and_clean_data()` in `app.py` — removes empty rows, duplicates, converts dates, handles missing values |
-| GenAI-powered text analysis | `utils/ai_analysis.py` — `analyze_report()` classifies category/severity/keywords/summary via DeepSeek |
+| GenAI-powered text analysis | `utils/ai_analysis.py` — `analyze_report()` classifies category/severity/keywords/summary via Qwen2.5-7B |
 | Streamlit interactive UI | Sidebar filters, columns, expanders, metrics, buttons, text areas throughout `app.py` |
 | Data visualization | Plotly bar charts (crop, location) and pie chart (categories) |
 | Dataset filtering | Sidebar crop/location/date filters applied before analysis and display |

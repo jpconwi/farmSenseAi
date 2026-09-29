@@ -1,19 +1,25 @@
 """
 utils/ai_analysis.py
 ---------------------
-This file contains ALL the functions that talk to the DeepSeek API.
+This file contains ALL the functions that talk to the AI model.
+
+Two ways to run the AI (chosen in the app sidebar):
+  1. Hugging Face:  app.py -> HF API token -> Hugging Face Inference
+                    Providers -> Qwen2.5-7B-Instruct
+  2. Ollama:        app.py -> Ollama running on your own computer
 
 Keeping these functions in a separate file (instead of putting everything
 inside app.py) makes the project easier to read and easier to test.
 
 Beginner note:
-    "GenAI" here means we send some text to the DeepSeek Chat model
-    (deepseek-chat) and ask it to return an answer. We always ask the
-    model to reply in a very strict format (JSON) so that Python can read
-    the answer reliably.
+    "GenAI" here means we send some text to the Qwen2.5-7B-Instruct model
+    (hosted through Hugging Face Inference Providers) and ask it to return
+    an answer. We always ask the model to reply in a very strict format
+    (JSON) so that Python can read the answer reliably.
 
-    DeepSeek's API is OpenAI-compatible, so we use the official `openai`
-    Python package and just point it at https://api.deepseek.com.
+    Hugging Face's router is OpenAI-compatible, so we simply send a
+    "chat/completions" request to https://router.huggingface.co/v1 with your
+    token.
 """
 
 import json
@@ -21,15 +27,25 @@ import os
 import re
 import time
 
-# We import the OpenAI-compatible client library (used for DeepSeek). If it
-# isn't installed, the app will show a friendly error instead of crashing.
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
+# We talk to Hugging Face with the plain `requests` library (already
+# installed together with Streamlit), so there is nothing extra to install.
+import requests
 
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-chat"
+# Hugging Face chat models, in order of preference. If the first one fails
+# (not served by any provider, out of credits, timeout...), the app
+# automatically moves on to the next one. Each must be a model that an
+# Inference Provider actually serves - see https://router.huggingface.co/v1/models
+MODEL_CHAIN = [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen3-8B",
+    "meta-llama/Llama-3.1-8B-Instruct",
+]
+MODEL_NAME = MODEL_CHAIN[0]  # default / first choice
+
+# Sentiment model (positive / neutral / negative). This is NOT a chat model:
+# it is a text classifier, so it is used only for the "sentiment" column.
+SENTIMENT_MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+HF_BASE_URL = "https://router.huggingface.co/v1"
 
 
 # Allowed categories. We keep this list in ONE place so app.py and this file
@@ -39,8 +55,9 @@ SEVERITIES = ["Low", "Moderate", "High"]
 
 # How many reports we bundle into a single API call. Bundling reports
 # together (instead of one request per report) keeps the number of API calls
-# small and the analysis fast.
-DEFAULT_GROUP_SIZE = 30
+# small. A 3B model follows instructions best with smaller groups, so we
+# keep this modest.
+DEFAULT_GROUP_SIZE = 8
 
 # How many times we retry a single API call if we get a 429 (rate limit)
 # error, and how long we wait between retries if the server doesn't tell us.
@@ -52,15 +69,11 @@ REQUEST_TIMEOUT_S = 60     # give up on any single API call after 60 seconds
 
 def _is_rate_limit_error(exc: Exception) -> bool:
     """True if this exception looks like a 429 (rate limit) error."""
-    msg = str(exc)
-    return getattr(exc, "status_code", None) == 429 or "429" in msg or "rate limit" in msg.lower()
+    return getattr(exc, "status_code", None) == 429 or "429" in str(exc)
 
 
 def _extract_retry_delay(exc: Exception, default: int = DEFAULT_RETRY_SECONDS) -> int:
-    """
-    If the server sent a Retry-After header, use it (capped); otherwise fall
-    back to `default` seconds.
-    """
+    """If the server sent a Retry-After header, use it (capped); else `default`."""
     try:
         retry_after = exc.response.headers.get("retry-after")
         if retry_after:
@@ -74,7 +87,7 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
     """
     Calls fn() and, if it fails with a rate-limit (429) error, waits and
     retries up to max_retries times. Any other kind of error is raised
-    immediately (no point retrying an invalid key or a malformed request).
+    immediately (no point retrying an invalid token or a malformed request).
     """
     last_exc = None
     for attempt in range(max_retries + 1):
@@ -89,61 +102,111 @@ def _call_with_retry(fn, max_retries: int = MAX_RETRIES):
     raise last_exc
 
 
-def get_client(api_key: str, base_url: str = DEEPSEEK_BASE_URL):
+class HFClient:
+    """Tiny client for Hugging Face Inference Providers (OpenAI-compatible)."""
+
+    def __init__(self, api_key: str, base_url: str = HF_BASE_URL):
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+
+
+def get_client(api_key: str):
     """
-    Create and return a DeepSeek client using the given API key.
+    Create and return a Hugging Face client using your token.
+    Returns None if the token is empty.
 
-    Returns None if:
-      - the api_key is empty
-      - the openai package failed to import
-
-    Beginner note: we NEVER hard-code the API key in this file. It is always
-    passed in from app.py, which reads it from st.secrets["DEEPSEEK_API_KEY"].
+    Beginner note: we NEVER hard-code the token in this file. It is always
+    passed in from app.py, which reads it from st.secrets["HF_TOKEN"].
     """
     if not api_key:
         return None
-    if OpenAI is None:
-        return None
+    return HFClient(api_key)
+
+
+# ---------------------------------------------------------------------------
+# OLLAMA (local AI) SUPPORT
+# ---------------------------------------------------------------------------
+OLLAMA_TIMEOUT = 180  # seconds; local models on a laptop can be slow
+
+
+class OllamaClient:
+    """Tiny client for a local Ollama server (default http://localhost:11434)."""
+
+    def __init__(self, host: str = "http://localhost:11434"):
+        self.host = host.rstrip("/")
+
+
+def ollama_list_models(host: str = "http://localhost:11434") -> list:
+    """Returns the names of models installed in Ollama, or [] if unreachable."""
     try:
-        # The timeout stops a bad connection from freezing the app forever.
-        return OpenAI(api_key=api_key, base_url=base_url or DEEPSEEK_BASE_URL, timeout=REQUEST_TIMEOUT_S)
+        r = requests.get(host.rstrip("/") + "/api/tags", timeout=3)
+        r.raise_for_status()
+        return [m["name"] for m in r.json().get("models", [])]
     except Exception:
-        return None
+        return []
 
 
-def _chat(client, model: str, prompt: str, temperature: float = 0, json_mode: bool = False) -> str:
+def _generate(client, model: str, prompt: str, temperature: float = 0, json_mode: bool = False) -> str:
     """
-    One place that actually calls DeepSeek. Sends `prompt` as a single user
-    message and returns the reply text.
-
-    json_mode=True asks DeepSeek to return a valid JSON *object*.
+    Sends one prompt to either Ollama or Hugging Face and returns the reply
+    text. json_mode only matters for Ollama (it forces valid JSON output).
     """
-    kwargs = {}
-    if json_mode:
-        kwargs["response_format"] = {"type": "json_object"}
-    response = _call_with_retry(lambda: client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=temperature,
-        **kwargs,
-    ))
-    return (response.choices[0].message.content or "").strip()
+    if isinstance(client, OllamaClient):
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "options": {"temperature": temperature},
+        }
+        if json_mode:
+            payload["format"] = "json"
+        r = requests.post(client.host + "/api/chat", json=payload, timeout=OLLAMA_TIMEOUT)
+        if r.status_code != 200:
+            raise RuntimeError(f"Ollama error {r.status_code}: {r.text[:200]}")
+        return r.json()["message"]["content"].strip()
+
+    r = requests.post(
+        client.base_url + "/chat/completions",
+        headers={"Authorization": f"Bearer {client.api_key}"},
+        json={
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": temperature,
+        },
+        timeout=REQUEST_TIMEOUT_S,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"Hugging Face error {r.status_code}: {r.text[:300]}")
+    text = (r.json()["choices"][0]["message"]["content"] or "").strip()
+    # Some models (e.g. Qwen3) print their reasoning inside <think>...</think>
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
 def _extract_json(text: str):
     """
-    Small helper that removes markdown code fences (```json ... ```) if the
-    AI added them, then parses the remaining text as JSON.
-    Raises ValueError/JSONDecodeError if the text is not valid JSON.
+    Small helper that parses the AI's reply as JSON. Small models sometimes
+    add markdown fences (```json ... ```) or a sentence before/after the JSON,
+    so if a direct parse fails we cut out the first {...} or [...] block.
+    Raises json.JSONDecodeError if no valid JSON can be found.
     """
     cleaned = text.strip()
     cleaned = re.sub(r"^```json", "", cleaned, flags=re.IGNORECASE).strip()
     cleaned = re.sub(r"^```", "", cleaned).strip()
     cleaned = re.sub(r"```$", "", cleaned).strip()
-    return json.loads(cleaned)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        starts = [i for i in (cleaned.find("{"), cleaned.find("[")) if i != -1]
+        if not starts:
+            raise
+        start = min(starts)
+        end = max(cleaned.rfind("}"), cleaned.rfind("]"))
+        if end <= start:
+            raise
+        return json.loads(cleaned[start:end + 1])
 
 
-def analyze_report(client, report_text: str, model: str = DEFAULT_MODEL) -> dict:
+def analyze_report(client, report_text: str, model: str = MODEL_NAME) -> dict:
     """
     Send ONE farmer report to the AI and ask it to classify it.
 
@@ -160,7 +223,7 @@ def analyze_report(client, report_text: str, model: str = DEFAULT_MODEL) -> dict
     message. It NEVER makes up fake analysis results.
     """
     if client is None:
-        return {"error": "No DeepSeek client available. Please check your API key."}
+        return {"error": "No AI client available. Please check your Hugging Face token (or that Ollama is running)."}
 
     if not report_text or not str(report_text).strip():
         return {"error": "Report text is empty, nothing to analyze."}
@@ -184,7 +247,7 @@ Farmer report:
 Respond with ONLY the JSON object."""
 
     try:
-        raw_text = _chat(client, model, prompt, temperature=0, json_mode=True)
+        raw_text = _call_with_retry(lambda: _generate(client, model, prompt, 0, True))
         result = _extract_json(raw_text)
 
         # --- Validate the AI's response before trusting it ---
@@ -215,25 +278,24 @@ def _analyze_group(client, reports: list, model: str) -> list:
     Sends a SMALL GROUP of reports (e.g. 8) to the AI in a single API call
     and asks for a JSON array of results, one per report, in the same order.
 
-    This is the key trick for staying under the free-tier rate limit: one
-    request classifies many reports instead of one request per report.
+    This is the key trick for keeping API usage low: one request classifies
+    many reports instead of one request per report.
 
     Returns a list of dicts (same length/order as `reports`). If the whole
     group call fails, every entry in the returned list has "error" set.
     """
     if client is None:
-        return [{"error": "No DeepSeek client available. Please check your API key."} for _ in reports]
+        return [{"error": "No AI client available. Please check your Hugging Face token (or that Ollama is running)."} for _ in reports]
 
     numbered = "\n".join(f'{i + 1}. """{text}"""' for i, text in enumerate(reports))
 
     prompt = f"""You are an agricultural assistant helping analyze farmer reports.
 
 Below is a numbered list of {len(reports)} farmer reports. Analyze EACH ONE
-and respond with ONLY a valid JSON object (no extra text, no markdown) with a
-single key "results" whose value is an array of exactly {len(reports)}
-elements, in the SAME ORDER as the reports below.
+and respond with ONLY a valid JSON array (no extra text, no markdown) with
+exactly {len(reports)} elements, in the SAME ORDER as the reports below.
 
-Each element of the array must be an object with exactly these keys:
+Each element must be an object with exactly these keys:
 - "category": must be exactly one of {CATEGORIES}
 - "severity": must be exactly one of {SEVERITIES}
 - "keywords": a short comma-separated string of important keywords (3-5 words)
@@ -242,14 +304,17 @@ Each element of the array must be an object with exactly these keys:
 Farmer reports:
 {numbered}
 
-Respond with ONLY the JSON object: {{"results": [ ...exactly {len(reports)} elements... ]}}"""
+Respond with ONLY the JSON array, containing exactly {len(reports)} elements."""
 
     try:
-        raw_text = _chat(client, model, prompt, temperature=0, json_mode=True)
-        parsed = _extract_json(raw_text)
-        # DeepSeek's JSON mode returns an object, so unwrap {"results": [...]}
+        if isinstance(client, OllamaClient):
+            # Ollama's JSON mode must return an object, so wrap the array.
+            prompt += '\nReturn the array inside a JSON object like {"results": [ ... ]}.'
+        text = _call_with_retry(lambda: _generate(client, model, prompt, 0, True))
+        parsed = _extract_json(text)
         if isinstance(parsed, dict):
-            parsed = parsed.get("results", [])
+            # unwrap {"results": [...]} (or any single list value)
+            parsed = next((v for v in parsed.values() if isinstance(v, list)), parsed)
         if not isinstance(parsed, list):
             raise ValueError("Expected a JSON array from the AI.")
 
@@ -279,7 +344,7 @@ Respond with ONLY the JSON object: {{"results": [ ...exactly {len(reports)} elem
         return [{"error": f"AI request failed: {e}"} for _ in reports]
 
 
-def analyze_reports_batch(client, reports: list, model: str = DEFAULT_MODEL,
+def analyze_reports_batch(client, reports: list, model: str = MODEL_NAME,
                            progress_callback=None, group_size: int = DEFAULT_GROUP_SIZE) -> list:
     """
     Classifies a list of report strings using the AI, sending `group_size`
@@ -308,6 +373,44 @@ def analyze_reports_batch(client, reports: list, model: str = DEFAULT_MODEL,
             progress_callback((group_index + 1) / total_groups)
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# SENTIMENT (cardiffnlp/twitter-roberta-base-sentiment-latest)
+# ---------------------------------------------------------------------------
+def analyze_sentiments(client, texts: list, model: str = SENTIMENT_MODEL):
+    """
+    Labels each text as "positive", "neutral" or "negative" using a small
+    text-classification model on Hugging Face.
+
+    Returns (labels, error): `labels` is a list the same length as `texts`
+    (or [] on failure) and `error` is None or a readable message.
+    """
+    if not isinstance(client, HFClient):
+        return [], "Sentiment needs the Hugging Face provider."
+    if not texts:
+        return [], None
+    try:
+        r = _call_with_retry(lambda: requests.post(
+            f"https://router.huggingface.co/hf-inference/models/{model}",
+            headers={"Authorization": f"Bearer {client.api_key}"},
+            json={"inputs": [t[:1500] for t in texts]},
+            timeout=REQUEST_TIMEOUT_S,
+        ))
+        if r.status_code != 200:
+            raise RuntimeError(f"Hugging Face error {r.status_code}: {r.text[:200]}")
+        data = r.json()
+        labels = []
+        for item in data:
+            # each item is a list of {"label":..., "score":...} (or one dict)
+            scores = item if isinstance(item, list) else [item]
+            best = max(scores, key=lambda d: d.get("score", 0))
+            labels.append(str(best.get("label", "neutral")).lower())
+        if len(labels) != len(texts):
+            raise ValueError("Unexpected number of sentiment results.")
+        return labels, None
+    except Exception as e:
+        return [], f"Sentiment request failed: {e}"
 
 
 # ---------------------------------------------------------------------------
@@ -405,7 +508,7 @@ def build_dataset_summary(df, max_chars: int = 4000) -> str:
     return summary
 
 
-def ask_chatbot(client, question: str, dataset_summary: str, model: str = DEFAULT_MODEL) -> str:
+def ask_chatbot(client, question: str, dataset_summary: str, model: str = MODEL_NAME) -> str:
     """
     Sends the user's question, together with the summarized dataset, to the
     AI and returns a plain-text answer.
@@ -414,7 +517,7 @@ def ask_chatbot(client, question: str, dataset_summary: str, model: str = DEFAUL
     so if it cannot answer - this prevents the chatbot from making up facts.
     """
     if client is None:
-        return "⚠️ AI chatbot is unavailable because no valid DeepSeek API key was found."
+        return "⚠️ AI chatbot is unavailable because no valid Hugging Face token was found."
 
     if not question or not question.strip():
         return "Please type a question first."
@@ -434,6 +537,6 @@ Question: {question}
 Give a short, clear, direct answer."""
 
     try:
-        return _chat(client, model, prompt, temperature=0.2)
+        return _call_with_retry(lambda: _generate(client, model, prompt, 0.2))
     except Exception as e:
         return f"⚠️ Could not get an answer from the AI right now. ({e})"
