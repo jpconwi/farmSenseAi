@@ -88,6 +88,20 @@ def _line(r):
     return f"- {r.date:%Y-%m-%d} · {r.location} · {r.crop}{sev} — {r.report} → *{r.likely_issue}*"
 
 
+
+def _podium(sub, col):
+    """'🥇 A (n · x%) · 🥈 B (m · y%)' for the top two values of a column (None if column missing/empty)."""
+    vc = sub[col][~sub[col].isin(NA)].value_counts()
+    if vc.empty:
+        return None
+    total = int(vc.sum())
+    medals = ["🥇 1st", "🥈 2nd"]
+    parts = [f"{medals[i]}: **{k}** ({int(v)} · {v / total:.0%})" for i, (k, v) in enumerate(vc.head(2).items())]
+    if len(vc) == 1:
+        parts.append(f"(only one {col} in the current filter)")
+    return "  ·  ".join(parts)
+
+
 # ---------------------------------------------------------------- charts
 def _count_chart(counts, dim, title):
     d = counts.reset_index()
@@ -333,6 +347,12 @@ def _answer_impl(question, df, last_filters=None):
         where = "in the current filter" if scope == "all reports" else f"for {scope}"
         word = "fewest" if asc else "most"
         text = f"**{winners}** {verb} the {word} reports (**{best}** of {total}) {where}.\n\nFull breakdown by {dim}:\n{table}"
+        # always show the top two of the asked dimension AND of the location (or crop) too
+        podium = [f"**Top 2 by {dim}:** {_podium(sub, dim)}"]
+        other = "location" if dim == "crop" else "crop" if dim == "location" else None
+        if other and _podium(sub, other):
+            podium.append(f"**Top 2 by {other}:** {_podium(sub, other)}")
+        text += "\n\n" + "\n\n".join(podium)
         # "...and what are the problems?" -> also name the specific problems / diseases of the winning group
         if dim in ("crop", "location") and _has(q, "problem", "issue", "disease", "pest", "wrong", "affect"):
             win = counts[counts == best].index.tolist()
