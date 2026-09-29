@@ -608,6 +608,16 @@ RULES (follow strictly):
    Give: what it is, causes, what to do, prevention. Remind the user to confirm with a local agricultural technician.
 5. If a question is unrelated to farming or the reports, reply: "That isn't available in the dataset."
 6. Start with the direct answer. Keep dataset facts short; use short bullet points for causes and treatment.
+7. RANKING RULES (when asked which location has the most reports, "top 1", rankings, etc.):
+   - Use the "LOCATIONS RANKED FOR <CROP>" lines; copy the counts exactly. Never estimate or guess counts.
+   - If there is ONLY ONE crop, focus on it and list every location highest first as "1st: <location> — <n> reports", "2nd: ...", "3rd: ...".
+     If only one location has reports say: "1st: <Location> — <n> reports. No other locations have reported problems for this crop."
+   - If several locations have the same count, give them the same rank. Never list locations with zero reports.
+   - If there are MULTIPLE crops, rank the locations for each crop separately; never combine different crops when counting.
+   - Never create a location that is not in the data and never omit a location that has reports. Highest number first.
+   - Name the main problems only as written in the reports. Do not diagnose a disease unless the report names it. Do not invent causes or solutions.
+   - No reports for a crop/location: "No reports available." Not enough information: "Insufficient data."
+   - Keep it short, factual and easy for farmers to understand.
 
 DATA:
 {dataset_summary}

@@ -102,6 +102,79 @@ def _podium(sub, col):
     return "  ·  ".join(parts)
 
 
+
+def _ordinal(n):
+    n = int(n)
+    if 10 <= n % 100 <= 20:
+        return f"{n}th"
+    suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def _ranked(series):
+    """[(rank, name, count)] highest first. Equal counts share a rank (1, 1, 3). Zero-count items are never listed."""
+    vc = series[~series.isin(NA)].value_counts()
+    vc = vc[vc > 0]
+    vc = vc.sort_index().sort_values(ascending=False, kind="stable")
+    out, prev, rank = [], None, 0
+    for i, (name, n) in enumerate(vc.items(), 1):
+        if n != prev:
+            rank, prev = i, n
+        out.append((rank, name, int(n)))
+    return out
+
+
+def _n_reports(n):
+    return f"{n} report" + ("" if n == 1 else "s")
+
+
+def _rank_lines(series, what, crop=None):
+    rows = _ranked(series)
+    lines = [f"- **{_ordinal(r)}:** {name} — {_n_reports(n)}" for r, name, n in rows]
+    if len(rows) == 1:
+        lines[0] += f". No other {what}s have reported problems" + (" for this crop." if crop else ".")
+    return lines
+
+
+def _top_texts(sub, k):
+    vc = sub["report"].astype(str).str.strip().value_counts().head(k)
+    return [f'- "{t[:1].upper() + t[1:]}" — {_n_reports(int(n))}' for t, n in vc.items()]
+
+
+def _rank_answer(q, sub, scope, f, dim):
+    """Ranking answer that follows the fixed rules: locations ranked per crop, highest first, ties share a rank,
+    zero-count locations never listed, problems quoted from the reports (never diagnosed)."""
+    if sub["location"].isin(NA + ("Unknown",)).all():
+        return {"text": "Insufficient data.", "fig": None, "filters": f}
+    crops = [c for c, _ in sub["crop"].value_counts().items() if c not in NA]
+    foot = "\n\n*Counts come straight from the data. Problems are quoted from the farmers' reports, not diagnosed.*"
+    if len(crops) <= 1:
+        crop = crops[0] if crops else "the selected crop"
+        sub_loc = sub[~sub["location"].isin(NA + ("Unknown",))]
+        rows = _ranked(sub_loc["location"])
+        top = [f"**{name}**" for r, name, n in rows if r == 1]
+        head = (f"**{crop}** is the only crop in the current filter, so here are its locations ranked by number of reports"
+                f" ({len(sub_loc)} in total):")
+        lines = _rank_lines(sub_loc["location"], "location", crop)
+        L = [head, "", *lines, "", f"**Main problems mentioned in the {crop} reports:**", *_top_texts(sub_loc, 3)]
+        return {"text": "\n".join(L) + foot, "fig": None, "filters": f}
+
+    L = []
+    if dim != "location":   # asked about crops: rank the crops first
+        L += [f"**Crops ranked by number of reports** ({len(sub)} in total):", *_rank_lines(sub["crop"], "crop"), ""]
+    L.append("**Locations ranked per crop** (each crop counted separately):")
+    for c in crops:
+        cs = sub[sub["crop"] == c]
+        cs = cs[~cs["location"].isin(NA + ("Unknown",))]
+        L += ["", f"**{c}** — {_n_reports(len(cs))}"]
+        if cs.empty:
+            L.append("No reports available.")
+            continue
+        L += _rank_lines(cs["location"], "location", c)
+        L += [f"Main problem mentioned: " + _top_texts(cs, 1)[0][2:]]
+    return {"text": "\n".join(L) + foot, "fig": None, "filters": f}
+
+
 # ---------------------------------------------------------------- charts
 def _count_chart(counts, dim, title):
     d = counts.reset_index()
@@ -266,7 +339,7 @@ def answer_from_data(question, df, last_filters=None):
 def _answer_impl(question, df, last_filters=None):
     q = question.lower().strip()
     if df is None or df.empty:
-        return {"text": "There are no reports in the current filter.", "fig": None, "filters": {}}
+        return {"text": "No reports available.", "fig": None, "filters": {}}
     df = add_diagnosis(df)
     if df["category"].isin(NA).all():
         # AI has not run: the knowledge base already types every report (Pest, Disease, Water...),
@@ -308,7 +381,7 @@ def _answer_impl(question, df, last_filters=None):
             sub = sub[sub[k].isin(vals)]
     scope = _describe({k: v for k, v in f.items() if k != dim})
     if sub.empty:
-        return {"text": f"No reports match **{scope}** in the current filter.", "fig": None, "filters": f}
+        return {"text": "No reports available.", "fig": None, "filters": f}
 
     # ---- "most common problem AND which location reports most" (must name the problem)
     if (_has(q, "problem", "issue", "disease", "pest") and _has(q, "location", "town", "place", "area", "barangay", "where")
@@ -331,6 +404,13 @@ def _answer_impl(question, df, last_filters=None):
         top = "\n".join(f"- {c}: **{ct[c].idxmax()}** ({int(ct[c].max())} report(s))" for c in ct.columns)
         return {"text": f"Most common specific problem in each {dim}:\n{top}",
                 "fig": fig, "filters": f}
+
+    # ---- "which crop / location has the most reports", "so what is the top 1?" -> rule-based ranking
+    _rank_ask = _has(q, "most", "top", "highest", "rank", "first", "1st", "2nd", "second", "order")
+    _prob_ask = _has(q, "problem", "issue", "disease", "pest", "wrong", "affect")
+    if (_rank_ask and not _prob_ask and not wants_chart
+            and (dim in ("crop", "location") or (dim is None and not _has(q, "list", "show", "latest", "recent", "newest")))):
+        return _rank_answer(q, sub, scope, f, dim)
 
     # ---- breakdown / ranking
     if dim is None and wants_chart:
@@ -389,6 +469,10 @@ def build_chat_context(df, max_rows=150):
     for col in ("crop", "location", "category", "severity", "sentiment", "likely_issue"):
         vc = df[col].value_counts()
         L.append(f"REPORTS PER {col.upper()}: " + ", ".join(f"{k}={v}" for k, v in vc.items()))
+    for c, g in df.groupby("crop"):
+        vc = g["location"].value_counts()
+        L.append(f"LOCATIONS RANKED FOR {c.upper()} (highest first, only locations with reports): "
+                 + ", ".join(f"{k}={v}" for k, v in vc.items()))
     L.append("\nALL REPORTS (id | date | location | crop | likely_issue | category | severity | sentiment | report):")
     for i, r in enumerate(df.sort_values("date").head(max_rows).itertuples(), 1):
         L.append(f"{i} | {r.date:%Y-%m-%d} | {r.location} | {r.crop} | {r.likely_issue} | {r.category} | {r.severity} | {r.sentiment} | {r.report}")
