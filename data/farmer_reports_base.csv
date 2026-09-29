@@ -1,51 +1,1046 @@
 date,location,crop,report
-,Lianga,Corn,The corn field looks unhealthy.
-2026-10-25,Tandag,Corn,The corn plants are turning yellow and growing slowly.
-2026-10-26,Barobo,Corn,Strong winds knocked down several corn stalks last week.
-2026-08-25,Marihatag,Rice,Heavy rain flooded part of the rice field.
-2026-08-25,Tago,Coconut,Beetles have been boring into the coconut trunks.
-2026-08-24,Lianga,Coconut,Beetles have been boring into the coconut trunks.
-2026-09-23,Cantilan,Vegetables,Heavy storm damaged the vegetable garden beds.
-2026-09-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
-2026-10-19,Lianga,Rice,There are many small insects around the plants.
-2026-09-03,Marihatag,Corn,White fungus is appearing on some corn cobs.
-2026-08-15,Cantilan,Corn,White fungus is appearing on some corn cobs.
-2026-10-08,Tandag,Corn,The soil is very dry and the corn plants are wilting.
-2026-09-15,Marihatag,Banana,Banana leaves have dark spots spreading quickly.
-2026-10-10,Lianga,Rice,The field has not received enough water.
-2026-10-04,Tago,Coconut,Many coconut leaves are becoming brown.
-2026-09-14,Tandag,Banana,Banana leaves have dark spots spreading quickly.
-2026-08-16,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
-2026-08-05,Marihatag,Corn,Strong winds knocked down several corn stalks last week.
-2026-09-18,Tandag,Rice,Many insects are eating the rice leaves.
-2026-10-07,Tago,Corn,Strong winds knocked down several corn stalks last week.
-2026-10-19,Bislig,Vegetables,Tomato plants are wilting despite regular watering.
-2026-09-10,Tandag,Banana,Banana plants are not growing well due to lack of fertilizer.
-2026-09-04,San Miguel,Banana,Banana plants are not growing well due to lack of fertilizer.
-2026-09-18,Barobo,Rice,Some rice plants have brown patches on the stems.
-2026-10-10,Lianga,Corn,The corn plants are turning yellow and growing slowly.
-2026-10-14,Bislig,Banana,Banana leaves have dark spots spreading quickly.
-2026-09-24,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
-2026-09-21,Tandag,Corn,"Corn leaves are curling and look pale, maybe lacking nutrients."
-2026-08-08,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
-2026-10-04,Lianga,Rice,There are many small insects around the plants.
-2026-10-03,Bislig,Coconut,Coconut trees are producing fewer nuts than usual.
-2026-09-14,Tandag,Corn,"Corn leaves are curling and look pale, maybe lacking nutrients."
-2026-08-02,Tago,Corn,White fungus is appearing on some corn cobs.
-2026-08-19,Tandag,Banana,Banana leaves have dark spots spreading quickly.
-2026-09-23,Barobo,Vegetables,Cabbage leaves are being eaten by caterpillars.
-2026-09-22,San Miguel,Banana,Strong rains caused some banana plants to fall over.
+2026-10-22,Tago,Rice,Some rice plants have brown patches on the stems.
+2026-09-01,Bislig,Coconut,Many coconut leaves are becoming brown.
+2026-08-02,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-26,Lianga,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-08-10,Tago,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-20,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-10-17,San Miguel,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-26,Tandag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-03,Marihatag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-14,Tandag,Rice,Many insects are eating the rice leaves.
+2026-08-07,Bislig,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-16,Cantilan,Banana,Aphids are found on the underside of banana leaves.
 2026-08-18,San Miguel,Rice,The rice leaves have yellow spots and several plants are dying.
-2026-10-02,Lianga,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-03,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-10-17,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-10,San Miguel,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-27,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-10-26,San Miguel,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-09-28,Barobo,Rice,Some rice plants have brown patches on the stems.
+2026-09-23,Tandag,Rice,Some rice plants have brown patches on the stems.
+2026-09-10,San Miguel,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-17,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-08-15,Cantilan,Corn,White fungus is appearing on some corn cobs.
+2026-09-18,Tandag,Banana,Strong rains caused some banana plants to fall over.
+2026-10-23,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-24,Lianga,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-19,Barobo,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-03,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-12,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-05,Lianga,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-18,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-16,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-16,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-03,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-08,Barobo,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-18,Cantilan,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-10-13,Cantilan,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-23,Barobo,Banana,Small black aphids with ants are on the banana plants.
+2026-09-14,San Miguel,Rice,There are many small insects around the plants.
+2026-08-17,Lianga,Rice,There are many small insects around the plants.
+2026-08-12,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-09,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-17,Tandag,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-28,Tago,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-05,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-22,Bislig,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-08-10,Lianga,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-10-20,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-28,Tago,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-23,Barobo,Coconut,The leaves of several coconut trees are turning brown at the tips.
+2026-09-23,Barobo,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-03,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-17,Lianga,Rice,Many insects are eating the rice leaves.
+2026-10-27,Bislig,Rice,The field has not received enough water.
+2026-09-27,Bislig,Banana,Strong rains caused some banana plants to fall over.
+2026-09-17,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-10-06,Lianga,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-07,Barobo,Coconut,Several coconut fronds are yellow and hanging down.
+2026-10-18,Barobo,Corn,Several corn plants have damaged leaves from worms.
+2026-10-15,Bislig,Banana,Small black aphids with ants are on the banana plants.
+2026-09-07,Tandag,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-28,Barobo,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
 2026-09-14,Lianga,Rice,There are many small insects around the plants.
-2026-08-23,Cantilan,Corn,Strong winds knocked down several corn stalks last week.
-2026-10-04,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-23,Marihatag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-03,Marihatag,Corn,White fungus is appearing on some corn cobs.
+2026-10-21,Tago,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-08-05,Cantilan,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-09,Lianga,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-08-08,Barobo,Coconut,Strong winds broke several coconut fronds.
+2026-09-11,Cantilan,Rice,Insects are chewing the leaves of my rice plants.
+2026-08-04,Bislig,Corn,Rats are eating the corn cobs.
+2026-10-04,Tago,Corn,Corn leaves are rolling because of dry weather.
+2026-09-18,Tago,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-10-07,Bislig,Corn,Rats are eating the corn cobs.
+2026-09-04,Tago,Banana,Strong rains caused some banana plants to fall over.
+2026-10-18,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-10-06,San Miguel,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-17,San Miguel,Corn,Several corn plants have damaged leaves from worms.
+2026-09-15,Marihatag,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-26,Lianga,Corn,White fungus is appearing on some corn cobs.
+2026-08-17,Lianga,Coconut,The palms produce fewer nuts and many nuts fall early.
+2026-10-03,Tago,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-03,Cantilan,Rice,Rats have been damaging the young rice stalks.
+2026-09-16,Tago,Banana,The banana plants are wilting because there is not enough water.
+2026-08-02,Cantilan,Rice,Some rice plants have brown patches on the stems.
+2026-08-03,Bislig,Coconut,Strong winds broke several coconut fronds.
+2026-09-19,Cantilan,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-26,Tandag,Vegetables,Tomato plants are wilting despite regular watering.
+2026-08-14,Tandag,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-26,Tago,Corn,Rats are eating the corn cobs.
+2026-10-22,Barobo,Rice,The field has not received enough water.
+2026-09-19,Barobo,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-10-18,Lianga,Rice,Rats have been damaging the young rice stalks.
+2026-10-26,Barobo,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-17,Tandag,Coconut,Many coconut leaves are becoming brown.
+2026-10-13,San Miguel,Rice,Small insects are jumping around the base of the rice plants.
 2026-10-19,Tago,Corn,The corn plants are turning yellow and growing slowly.
-2026-09-15,  Bislig  ,Coconut,  Coconut leaves are turning brown.  
+2026-10-11,Marihatag,Corn,The soil is very dry and the corn plants are wilting.
+2026-10-15,Lianga,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-09-18,Cantilan,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-05,Marihatag,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-25,Marihatag,Rice,Heavy rain flooded part of the rice field.
+2026-08-28,Bislig,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-15,Tago,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-03,Barobo,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-12,Bislig,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-08-06,Cantilan,Corn,"Lower corn leaves are yellow, maybe the soil needs fertilizer."
+2026-09-02,Barobo,Rice,The rice field was flooded after the river overflowed.
+2026-09-23,Lianga,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-25,Bislig,Corn,Corn leaves are rolling because of dry weather.
+2026-08-16,Bislig,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-10-18,Lianga,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-10-01,Lianga,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-27,Barobo,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-08-19,Cantilan,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-08-23,Tago,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-19,San Miguel,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-15,Cantilan,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-08-18,Tandag,Corn,Wind flattened part of the corn field.
+2026-10-24,San Miguel,Rice,Some rice plants have brown patches on the stems.
+2026-10-12,Marihatag,Rice,Rats have been damaging the young rice stalks.
+2026-09-15,San Miguel,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-08-07,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-16,Cantilan,Rice,There are many small insects around the plants.
+2026-10-03,Bislig,Coconut,Strong winds broke several coconut fronds.
+2026-10-07,Tandag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-24,Barobo,Banana,Strong rains caused some banana plants to fall over.
+2026-09-09,Marihatag,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-07,Tandag,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-17,Barobo,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-21,Bislig,Rice,Many insects are eating the rice leaves.
+2026-09-22,Tandag,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-09-24,Cantilan,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-10-07,Marihatag,Corn,Corn leaves are rolling because of dry weather.
+2026-08-16,Lianga,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-04,Tago,Rice,Heavy rain flooded part of the rice field.
+2026-10-18,Lianga,Coconut,Many coconut leaves are becoming brown.
+2026-10-28,Tandag,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-21,Bislig,Rice,Many insects are eating the rice leaves.
+2026-08-05,Barobo,Corn,"Lower corn leaves are yellow, maybe the soil needs fertilizer."
+2026-10-05,Marihatag,Banana,Strong rains caused some banana plants to fall over.
+2026-09-02,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-21,Tago,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-27,Tago,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-18,San Miguel,Coconut,The palms produce fewer nuts and many nuts fall early.
+2026-09-08,Marihatag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-20,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-10-24,Bislig,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-24,Marihatag,Corn,Several corn plants have damaged leaves from worms.
+2026-10-19,Barobo,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-14,Barobo,Rice,There is not enough water in the irrigation canal for the rice.
+2026-10-11,Marihatag,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-07,Tago,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-09,Tago,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-10-13,Tandag,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-08-08,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-09,Tago,Coconut,The palms produce fewer nuts and many nuts fall early.
+2026-10-08,Tandag,Banana,Small black aphids with ants are on the banana plants.
+2026-08-15,Tandag,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-11,San Miguel,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-08-23,Lianga,Rice,Insects are chewing the leaves of my rice plants.
+2026-09-10,Cantilan,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-10-25,Marihatag,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-08-26,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-09-11,Marihatag,Vegetables,"Tomato plants are wilting despite regular watering, and the stems ooze when cut."
+2026-09-19,Bislig,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-17,Tago,Banana,Strong rains caused some banana plants to fall over.
+2026-08-14,Cantilan,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-09-21,Tandag,Banana,Heavy rain toppled several banana plants.
+2026-09-08,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-19,Barobo,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-17,Bislig,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-02,Barobo,Corn,Several corn plants have damaged leaves from worms.
+2026-08-15,Tago,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-16,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-10-27,Lianga,Corn,Corn leaves are rolling because of dry weather.
+2026-08-14,Tago,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-18,Barobo,Rice,Some rice plants have brown patches on the stems.
+2026-10-19,Lianga,Rice,There are many small insects around the plants.
+2026-10-24,Bislig,Rice,Insects are chewing the leaves of my rice plants.
+2026-10-22,Barobo,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-19,Barobo,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-25,Cantilan,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-08-10,Marihatag,Corn,"Lower corn leaves are yellow, maybe the soil needs fertilizer."
+2026-09-18,Marihatag,Rice,Many insects are eating the rice leaves.
+2026-08-09,Tago,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-24,Tandag,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-08-24,Lianga,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-21,Cantilan,Coconut,Many coconut leaves are becoming brown.
+2026-08-15,Tago,Rice,There are many small insects around the plants.
+2026-10-03,Bislig,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-08-22,Barobo,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-25,San Miguel,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-10-09,Tandag,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-08-16,Barobo,Rice,Many insects are eating the rice leaves.
+2026-09-20,Tandag,Corn,Wind flattened part of the corn field.
+2026-08-26,Tago,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-10-01,Tandag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-21,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-10-20,Barobo,Corn,The corn plants are turning yellow and growing slowly.
+2026-08-14,Tago,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-19,Barobo,Banana,Aphids are found on the underside of banana leaves.
+2026-08-12,Tandag,Rice,Insects are chewing the leaves of my rice plants.
+2026-08-11,Tago,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-09-22,Barobo,Rice,The field has not received enough water.
+2026-09-05,Bislig,Vegetables,Tomato plants are wilting despite regular watering.
+2026-08-25,Tago,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-07,Tago,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-08-22,Tandag,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-17,Cantilan,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-27,San Miguel,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-16,Bislig,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-08-24,Cantilan,Coconut,Many coconut leaves are becoming brown.
+2026-09-22,Cantilan,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-23,Tandag,Vegetables,Tomato plants are wilting despite regular watering.
+2026-09-22,San Miguel,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-12,San Miguel,Corn,The corn plants are turning yellow and growing slowly.
+2026-08-05,Cantilan,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-09-12,Bislig,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-04,Bislig,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-15,Barobo,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-13,Barobo,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-10-26,Tago,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-01,San Miguel,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-09,Bislig,Vegetables,Tomato plants are wilting despite regular watering.
+2026-09-05,Tandag,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-14,Cantilan,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-05,Tandag,Banana,Aphids are found on the underside of banana leaves.
+2026-08-06,San Miguel,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-09,Barobo,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-08-16,Lianga,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-02,Tago,Corn,White fungus is appearing on some corn cobs.
+2026-08-22,Bislig,Coconut,Several coconut fronds are yellow and hanging down.
+2026-10-01,Lianga,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-11,Cantilan,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-08-17,San Miguel,Rice,Rats have been damaging the young rice stalks.
+2026-10-12,Bislig,Corn,Several corn plants have damaged leaves from worms.
+2026-08-28,Tago,Coconut,Strong winds broke several coconut fronds.
+2026-09-01,Cantilan,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-18,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-10,Lianga,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-04,Tago,Coconut,Many coconut leaves are becoming brown.
+2026-10-03,Tandag,Corn,Wind flattened part of the corn field.
+2026-08-25,San Miguel,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-15,Tago,Coconut,Many coconut leaves are becoming brown.
+2026-08-06,Tago,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-25,Barobo,Banana,Strong rains caused some banana plants to fall over.
+2026-09-16,Bislig,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-09-11,Tandag,Rice,There are many small insects around the plants.
+2026-09-10,Barobo,Banana,Aphids are found on the underside of banana leaves.
+2026-08-07,Bislig,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-15,Tago,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-20,Bislig,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-03,Tandag,Rice,The rice field was flooded after the river overflowed.
+2026-10-05,Tago,Corn,White fungus is appearing on some corn cobs.
+2026-10-08,Tandag,Rice,Many insects are eating the rice leaves.
+2026-09-26,Barobo,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-18,Marihatag,Corn,Wind flattened part of the corn field.
+2026-08-06,Lianga,Rice,Many insects are eating the rice leaves.
+2026-10-12,San Miguel,Banana,Heavy rain toppled several banana plants.
+2026-08-24,San Miguel,Rice,Many insects are eating the rice leaves.
+2026-08-27,Bislig,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-09-16,Lianga,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-22,Barobo,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-14,Lianga,Rice,There are many small insects around the plants.
+2026-09-23,Cantilan,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-09-24,Barobo,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-08-06,Tago,Coconut,Strong winds broke several coconut fronds.
+2026-09-05,Barobo,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-19,Tandag,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-08-01,San Miguel,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-13,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-08-09,Lianga,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-25,Tago,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-04,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-14,Lianga,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-09-16,Marihatag,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-12,Tago,Corn,"Lower corn leaves are yellow, maybe the soil needs fertilizer."
+2026-08-21,Tandag,Coconut,The palms produce fewer nuts and many nuts fall early.
+2026-08-06,Barobo,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-24,Tago,Banana,The banana plants are wilting because there is not enough water.
+2026-08-28,Marihatag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-10-20,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-09-07,Cantilan,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-24,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-12,Bislig,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-22,San Miguel,Banana,Strong rains caused some banana plants to fall over.
+2026-09-19,Marihatag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-20,Marihatag,Corn,Moldy cobs found after the rainy days and the kernels are rotting.
+2026-09-17,Marihatag,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-27,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-10-01,Tago,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-03,Barobo,Corn,White fungus is appearing on some corn cobs.
+2026-08-17,Tandag,Rice,There are many small insects around the plants.
+2026-09-13,Barobo,Coconut,Many coconut leaves are becoming brown.
+2026-10-23,Tandag,Corn,White fungus is appearing on some corn cobs.
+2026-08-04,Tago,Corn,Wind flattened part of the corn field.
+2026-09-24,Lianga,Rice,Rats have been damaging the young rice stalks.
+2026-10-16,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-08,San Miguel,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-18,Tandag,Rice,Many insects are eating the rice leaves.
+2026-09-25,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-10,Lianga,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-12,San Miguel,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-24,Lianga,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-08-20,Bislig,Corn,Several corn plants have damaged leaves from worms.
+2026-09-25,Marihatag,Rice,Many insects are eating the rice leaves.
+2026-08-26,Marihatag,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-09-25,Tago,Corn,White fungus is appearing on some corn cobs.
+2026-10-28,Tago,Corn,Several corn plants have damaged leaves from worms.
+2026-08-26,Marihatag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-06,Tago,Coconut,Many coconut leaves are becoming brown.
+2026-09-11,Tandag,Corn,Corn leaves are rolling because of dry weather.
+2026-08-12,Tandag,Banana,The banana plants are wilting because there is not enough water.
+2026-09-02,Lianga,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-09-21,Tandag,Corn,"Corn leaves are curling and look pale, maybe lacking nutrients."
+2026-09-20,Tandag,Rice,There is not enough water in the irrigation canal for the rice.
+2026-08-10,San Miguel,Corn,The soil is very dry and the corn plants are wilting.
+2026-10-04,Cantilan,Rice,Rats have been damaging the young rice stalks.
+2026-09-18,Marihatag,Rice,Some rice plants have brown patches on the stems.
+2026-09-23,Barobo,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-11,Bislig,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-09-07,Tandag,Banana,Small black aphids with ants are on the banana plants.
+2026-09-10,Lianga,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-10-03,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-11,San Miguel,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-13,Tandag,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-08-16,Barobo,Coconut,Several coconut fronds are yellow and hanging down.
+2026-08-16,Tago,Vegetables,Tomato plants are wilting despite regular watering.
+2026-08-02,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-09-01,Cantilan,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-02,Tago,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-11,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-17,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-10-13,Cantilan,Corn,Corn leaves are rolling because of dry weather.
+2026-09-09,Lianga,Rice,Some rice plants have brown patches on the stems.
+2026-09-09,Tago,Coconut,Several coconut fronds are yellow and hanging down.
+2026-10-22,Bislig,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-13,Tago,Banana,Small black aphids with ants are on the banana plants.
+2026-08-25,San Miguel,Vegetables,"Tomato plants are wilting despite regular watering, and the stems ooze when cut."
+2026-09-25,Bislig,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-05,Tandag,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-10-14,Cantilan,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-09-02,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-20,Bislig,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-10-28,Lianga,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-09-24,San Miguel,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-08-08,Cantilan,Banana,Aphids are found on the underside of banana leaves.
+2026-09-27,Barobo,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-10-08,Lianga,Coconut,Several coconut fronds are yellow and hanging down.
+2026-08-12,Tandag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-05,Lianga,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-23,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-24,Tago,Rice,Insects are chewing the leaves of my rice plants.
+2026-08-01,Bislig,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-10-09,Cantilan,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-11,Lianga,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-21,Tandag,Rice,Many insects are eating the rice leaves.
+2026-08-07,Barobo,Rice,There are many small insects around the plants.
+2026-09-13,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-10-24,Tandag,Banana,Aphids are found on the underside of banana leaves.
+2026-10-01,Tago,Coconut,Several coconut fronds are yellow and hanging down.
+2026-09-21,Marihatag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-12,San Miguel,Rice,Small insects are jumping around the base of the rice plants.
+2026-10-25,Bislig,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-19,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-22,Bislig,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-08-02,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-23,Cantilan,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-12,Tago,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-08-27,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-09-21,Lianga,Rice,There are many small insects around the plants.
+2026-09-01,Tandag,Rice,Insects are chewing the leaves of my rice plants.
+2026-10-04,Tandag,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-22,Bislig,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-08,Tandag,Corn,The soil is very dry and the corn plants are wilting.
+2026-09-04,San Miguel,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-28,Bislig,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-09,Marihatag,Rice,The field has not received enough water.
+2026-08-13,Cantilan,Corn,The corn plants are turning yellow and growing slowly.
+2026-08-02,Lianga,Rice,Some rice plants have brown patches on the stems.
+2026-10-28,Tandag,Corn,White fungus is appearing on some corn cobs.
+2026-10-14,Bislig,Coconut,Many coconut leaves are becoming brown.
+2026-10-09,Tandag,Rice,There is not enough water in the irrigation canal for the rice.
+2026-08-08,Barobo,Rice,Rats have been damaging the young rice stalks.
+2026-09-02,San Miguel,Corn,White fungus is appearing on some corn cobs.
+2026-08-02,Cantilan,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-01,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-10-06,Lianga,Vegetables,Tomato plants are wilting despite regular watering.
+2026-08-17,Bislig,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-02,Tandag,Coconut,Many coconut leaves are becoming brown.
+2026-10-26,Tago,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-08-05,Barobo,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-08-17,Tago,Corn,White fungus is appearing on some corn cobs.
+2026-10-13,Bislig,Banana,Strong rains caused some banana plants to fall over.
+2026-10-22,Lianga,Vegetables,Tomato plants are wilting despite regular watering.
+2026-09-09,Lianga,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-02,Lianga,Rice,Rats have been damaging the young rice stalks.
+2026-09-25,Barobo,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-18,Lianga,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-26,Cantilan,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-01,Cantilan,Banana,Heavy rain toppled several banana plants.
+2026-09-25,Barobo,Rice,Many insects are eating the rice leaves.
+2026-09-10,Marihatag,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-09-09,Bislig,Corn,Several corn plants have damaged leaves from worms.
+2026-09-26,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-02,Lianga,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-04,Lianga,Rice,There are many small insects around the plants.
+2026-08-09,Tandag,Coconut,Many coconut leaves are becoming brown.
+2026-09-12,Cantilan,Rice,The field has not received enough water.
+2026-10-13,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-26,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-27,Lianga,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-17,Tago,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-08-03,Barobo,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-27,Tago,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-10,Tandag,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-27,Tandag,Banana,Aphids are found on the underside of banana leaves.
+2026-08-24,Tago,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-10,Marihatag,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-10-21,Marihatag,Corn,Several corn plants have damaged leaves from worms.
+2026-10-20,Tago,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-17,Tandag,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-09,Tandag,Rice,There are many small insects around the plants.
 2026-09-10,Tago,Rice,
+2026-09-28,Lianga,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-08-24,Marihatag,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-13,Lianga,Banana,Strong rains caused some banana plants to fall over.
+2026-10-12,Bislig,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-10-10,Lianga,Rice,The field has not received enough water.
+2026-10-21,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-05,Lianga,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-09-14,Tandag,Corn,"Corn leaves are curling and look pale, maybe lacking nutrients."
+2026-10-27,Bislig,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-23,San Miguel,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-24,Tago,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-09,Tandag,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-09-03,Tandag,Corn,Rats are eating the corn cobs.
+2026-08-08,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-23,Tago,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-10-19,Bislig,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-06,Lianga,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-16,Bislig,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-10-15,Tago,Corn,Corn leaves are rolling because of dry weather.
+2026-10-11,Marihatag,Rice,Insects are folding the rice leaves and leaving white streaks.
+2026-09-28,Bislig,Rice,Some rice plants have brown patches on the stems.
+2026-09-04,Tago,Rice,There are many small insects around the plants.
+2026-08-17,Cantilan,Banana,Aphids are found on the underside of banana leaves.
+2026-08-23,Barobo,Corn,Strong winds knocked down several corn stalks last week.
+,Lianga,Corn,The corn field looks unhealthy.
+2026-09-12,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-09-10,Cantilan,Rice,There are many small insects around the plants.
+2026-09-16,Lianga,Coconut,Many coconut leaves are becoming brown.
+2026-09-25,Bislig,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-17,Bislig,Corn,"Lower corn leaves are yellow, maybe the soil needs fertilizer."
+2026-08-16,Lianga,Rice,Some rice plants have brown patches on the stems.
+2026-09-07,Barobo,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-14,Tago,Corn,The corn plants are turning yellow and growing slowly.
+2026-08-02,Bislig,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-27,Cantilan,Vegetables,"Tomato plants are wilting despite regular watering, and the stems ooze when cut."
+2026-09-02,San Miguel,Rice,Brown patches are spreading on the rice stems near the water line.
+2026-10-25,Tandag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-14,Bislig,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-10-10,Tago,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-09-28,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-19,Cantilan,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-25,San Miguel,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-08-25,Cantilan,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-09-07,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-02,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-25,Lianga,Banana,Heavy rain toppled several banana plants.
+2026-10-02,Tago,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-11,Bislig,Rice,The field has not received enough water.
+2026-08-17,Tago,Corn,Wind flattened part of the corn field.
+2026-09-16,San Miguel,Banana,Strong rains caused some banana plants to fall over.
+2026-09-01,Lianga,Rice,Some rice plants have brown patches on the stems.
+2026-10-14,Tago,Banana,Strong rains caused some banana plants to fall over.
+2026-08-16,Tandag,Rice,Rats have been damaging the young rice stalks.
+2026-10-13,Cantilan,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-22,Tago,Rice,Insects are chewing the leaves of my rice plants.
+2026-10-20,San Miguel,Coconut,Many coconut leaves are becoming brown.
+2026-10-09,Marihatag,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-06,San Miguel,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-10-25,Cantilan,Coconut,Several coconut fronds are yellow and hanging down.
+2026-08-12,Tago,Coconut,Many coconut leaves are becoming brown.
+2026-10-08,Tandag,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-08-17,Cantilan,Coconut,Strong winds broke several coconut fronds.
+2026-09-28,Lianga,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-08-14,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-08,Lianga,Corn,The soil is very dry and the corn plants are wilting.
+2026-10-06,Barobo,Corn,Corn leaves are rolling because of dry weather.
+2026-10-13,Tago,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-08-18,Tandag,Rice,The field has not received enough water.
+2026-08-18,Cantilan,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-08,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-09-16,Tandag,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-10-09,Tago,Corn,Several corn plants have damaged leaves from worms.
+2026-08-14,San Miguel,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-26,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-21,Lianga,Coconut,Many coconut leaves are becoming brown.
+2026-10-28,Barobo,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-27,Tandag,Rice,Heavy rain flooded part of the rice field.
+2026-08-14,Lianga,Vegetables,Tomato plants are wilting despite regular watering.
+2026-08-25,Barobo,Banana,Aphids are found on the underside of banana leaves.
+2026-08-15,Barobo,Rice,The field has not received enough water.
+2026-10-01,Lianga,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-17,Lianga,Coconut,Many coconut leaves are becoming brown.
+2026-09-08,Bislig,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-21,Lianga,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-26,Barobo,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-16,Bislig,Coconut,The palms produce fewer nuts and many nuts fall early.
+2026-09-04,Tandag,Corn,Moldy cobs found after the rainy days and the kernels are rotting.
+2026-09-18,Lianga,Coconut,Several coconut fronds are yellow and hanging down.
+2026-10-15,Lianga,Banana,Dark spots and streaks are showing on the older banana leaves.
+2026-08-22,Bislig,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-10-26,Cantilan,Banana,Strong rains caused some banana plants to fall over.
+2026-09-15,  Bislig  ,Coconut,  Coconut leaves are turning brown.  
+2026-09-22,Lianga,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-10-19,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-09-14,Tandag,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-23,Barobo,Corn,Several corn plants have damaged leaves from worms.
+2026-09-16,Tandag,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-10-02,Tago,Corn,Moldy cobs found after the rainy days and the kernels are rotting.
+2026-10-09,Tandag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-02,Lianga,Banana,Banana leaves have dark spots spreading quickly.
+2026-08-01,Bislig,Rice,There is not enough water in the irrigation canal for the rice.
+2026-09-03,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-11,Tago,Banana,Strong rains caused some banana plants to fall over.
+2026-10-10,Lianga,Corn,The corn plants are turning yellow and growing slowly.
+2026-10-19,Bislig,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-11,San Miguel,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-06,Barobo,Rice,Many insects are eating the rice leaves.
+2026-09-20,Tago,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-28,Tandag,Corn,Several corn plants have damaged leaves from worms.
+2026-09-06,Barobo,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-25,Tago,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+2026-09-15,Bislig,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-08-02,Tandag,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-09-12,Tago,Vegetables,"Tomato plants are wilting despite regular watering, and the stems ooze when cut."
+2026-10-14,Bislig,Banana,Banana leaves have dark spots spreading quickly.
+2026-09-15,Cantilan,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-10-06,Cantilan,Coconut,Many coconut leaves are becoming brown.
+2026-09-04,Bislig,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-23,Cantilan,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-03,San Miguel,Corn,Rats are eating the corn cobs.
+2026-10-12,Bislig,Rice,Heavy rain flooded part of the rice field.
+2026-08-01,Lianga,Banana,Aphids are found on the underside of banana leaves.
+2026-08-25,Marihatag,Vegetables,"Vegetable seedlings are turning yellow, possibly nutrient deficiency."
+date,location,crop,report
+2026-10-22,Tago,Rice,Some rice plants have brown patches on the stems.
+2026-08-10,Tago,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-03,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-08-17,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-16,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-28,Tago,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-28,Tago,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-21,Tago,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-04,Tago,Corn,Corn leaves are rolling because of dry weather.
+2026-09-18,Tago,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-01,Bislig,Coconut,Many coconut leaves are becoming brown.
+2026-08-07,Bislig,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-27,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-22,Bislig,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-27,Bislig,Rice,The field has not received enough water.
+2026-09-27,Bislig,Banana,Strong rains caused some banana plants to fall over.
+2026-10-15,Bislig,Banana,Small black aphids with ants are on the banana plants.
+2026-08-04,Bislig,Corn,Rats are eating the corn cobs.
+2026-10-07,Bislig,Corn,Rats are eating the corn cobs.
+2026-10-18,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-02,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-26,Tandag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-14,Tandag,Rice,Many insects are eating the rice leaves.
+2026-09-23,Tandag,Rice,Some rice plants have brown patches on the stems.
+2026-09-18,Tandag,Banana,Strong rains caused some banana plants to fall over.
+2026-09-03,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-18,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-17,Tandag,Corn,The soil is very dry and the corn plants are wilting.
+2026-10-20,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-03,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-26,Lianga,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-08-24,Lianga,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-05,Lianga,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-17,Lianga,Rice,There are many small insects around the plants.
+2026-08-10,Lianga,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-17,Lianga,Rice,Many insects are eating the rice leaves.
+2026-10-06,Lianga,Rice,The rice leaves have yellow spots and several plants are dying.
 2026-09-14,Lianga,Rice,There are many small insects around the plants.
 2026-08-09,Lianga,Coconut,Coconut trees are producing fewer nuts than usual.
-2026-09-28,Tandag,Corn,Several corn plants have damaged leaves from worms.
-2026-09-28,Tago,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-26,Lianga,Corn,White fungus is appearing on some corn cobs.
+2026-09-20,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-03,Marihatag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-17,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-23,Marihatag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-03,Marihatag,Corn,White fungus is appearing on some corn cobs.
+2026-09-15,Marihatag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-11,Marihatag,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-05,Marihatag,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-25,Marihatag,Rice,Heavy rain flooded part of the rice field.
+2026-10-12,Marihatag,Rice,Rats have been damaging the young rice stalks.
+2026-10-17,San Miguel,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-18,San Miguel,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-10,San Miguel,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-26,San Miguel,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-09-10,San Miguel,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-16,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-14,San Miguel,Rice,There are many small insects around the plants.
+2026-10-06,San Miguel,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-17,San Miguel,Corn,Several corn plants have damaged leaves from worms.
+2026-10-13,San Miguel,Rice,Small insects are jumping around the base of the rice plants.
+2026-10-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
 2026-09-28,Barobo,Rice,Some rice plants have brown patches on the stems.
-2026-09-28,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-10-23,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-19,Barobo,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-08,Barobo,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-23,Barobo,Banana,Small black aphids with ants are on the banana plants.
+2026-08-12,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-09,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-05,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-16,Cantilan,Banana,Aphids are found on the underside of banana leaves.
+2026-08-15,Cantilan,Corn,White fungus is appearing on some corn cobs.
+2026-09-12,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-18,Cantilan,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-10-13,Cantilan,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-17,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-05,Cantilan,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-11,Cantilan,Rice,Insects are chewing the leaves of my rice plants.
+2026-09-03,Cantilan,Rice,Rats have been damaging the young rice stalks.
+2026-08-02,Cantilan,Rice,Some rice plants have brown patches on the stems.
+
+
+
+
+
+
+
+
+
+//new datasets
+
+
+
+date,location,crop,report
+2026-10-22,Tago,Rice,Some rice plants have brown patches on the stems.
+2026-08-10,Tago,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-03,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-08-17,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-16,Tago,Banana,Banana leaves look pale and the bunches are small; the soil needs fertilizer.
+2026-09-28,Tago,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-28,Tago,Vegetables,The vegetable plants are drying and the soil is very dry.
+2026-10-21,Tago,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-04,Tago,Corn,Corn leaves are rolling because of dry weather.
+2026-09-18,Tago,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-01,Bislig,Coconut,Many coconut leaves are becoming brown.
+2026-08-07,Bislig,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-27,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-22,Bislig,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-27,Bislig,Rice,The field has not received enough water.
+2026-09-27,Bislig,Banana,Strong rains caused some banana plants to fall over.
+2026-10-15,Bislig,Banana,Small black aphids with ants are on the banana plants.
+2026-08-04,Bislig,Corn,Rats are eating the corn cobs.
+2026-10-07,Bislig,Corn,Rats are eating the corn cobs.
+2026-10-18,Bislig,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-02,Tandag,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-09-26,Tandag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-09-14,Tandag,Rice,Many insects are eating the rice leaves.
+2026-09-23,Tandag,Rice,Some rice plants have brown patches on the stems.
+2026-09-18,Tandag,Banana,Strong rains caused some banana plants to fall over.
+2026-09-03,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-18,Tandag,Coconut,Beetles have been boring into the coconut trunks.
+2026-10-17,Tandag,Corn,The soil is very dry and the corn plants are wilting.
+2026-10-20,Tandag,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-08-03,Tandag,Corn,Strong winds knocked down several corn stalks last week.
+2026-09-26,Lianga,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-08-24,Lianga,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-05,Lianga,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-17,Lianga,Rice,There are many small insects around the plants.
+2026-08-10,Lianga,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-17,Lianga,Rice,Many insects are eating the rice leaves.
+2026-10-06,Lianga,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-14,Lianga,Rice,There are many small insects around the plants.
+2026-08-09,Lianga,Coconut,Coconut trees are producing fewer nuts than usual.
+2026-09-26,Lianga,Corn,White fungus is appearing on some corn cobs.
+2026-09-20,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-08-03,Marihatag,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-17,Marihatag,Vegetables,Caterpillars are eating holes in the mustard leaves.
+2026-09-23,Marihatag,Corn,The corn plants are turning yellow and growing slowly.
+2026-09-03,Marihatag,Corn,White fungus is appearing on some corn cobs.
+2026-09-15,Marihatag,Banana,Banana leaves have dark spots spreading quickly.
+2026-10-11,Marihatag,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-05,Marihatag,Corn,Strong winds knocked down several corn stalks last week.
+2026-08-25,Marihatag,Rice,Heavy rain flooded part of the rice field.
+2026-10-12,Marihatag,Rice,Rats have been damaging the young rice stalks.
+2026-10-17,San Miguel,Corn,Worms are eating the corn leaves and there are droppings in the whorl.
+2026-08-18,San Miguel,Rice,The rice leaves have yellow spots and several plants are dying.
+2026-09-10,San Miguel,Rice,Yellow spots are showing on the rice leaves and the tips are drying.
+2026-10-26,San Miguel,Vegetables,"White powder is covering the squash leaves, it looks like powdery mildew."
+2026-09-10,San Miguel,Corn,The soil is very dry and the corn plants are wilting.
+2026-08-16,San Miguel,Vegetables,Cabbage leaves are being eaten by caterpillars.
+2026-09-14,San Miguel,Rice,There are many small insects around the plants.
+2026-10-06,San Miguel,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-09-17,San Miguel,Corn,Several corn plants have damaged leaves from worms.
+2026-10-13,San Miguel,Rice,Small insects are jumping around the base of the rice plants.
+2026-10-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-28,Barobo,Rice,Some rice plants have brown patches on the stems.
+2026-10-23,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-08-19,Barobo,Corn,"Corn leaves are pale and the plants look weak, maybe lacking nutrients."
+2026-09-08,Barobo,Vegetables,Strong rain washed out the vegetable seedbeds.
+2026-09-10,Barobo,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-10-23,Barobo,Banana,Small black aphids with ants are on the banana plants.
+2026-08-12,Barobo,Coconut,Coconut fronds are drooping and turning yellow.
+2026-10-09,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-05,Barobo,Coconut,Beetles have been boring into the coconut trunks.
+2026-08-16,Cantilan,Banana,Aphids are found on the underside of banana leaves.
+2026-08-15,Cantilan,Corn,White fungus is appearing on some corn cobs.
+2026-09-12,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-09-18,Cantilan,Coconut,There are holes in the coconut crown and beetles are boring in.
+2026-10-13,Cantilan,Banana,Banana plants are not growing well due to lack of fertilizer.
+2026-09-17,Cantilan,Rice,Small insects are jumping around the base of the rice plants.
+2026-08-05,Cantilan,Coconut,Beetles have been boring into the coconut trunks.
+2026-09-11,Cantilan,Rice,Insects are chewing the leaves of my rice plants.
+2026-09-03,Cantilan,Rice,Rats have been damaging the young rice stalks.
+2026-08-02,Cantilan,Rice,Some rice plants have brown patches on the stems.
+2026-08-01,Tago,Rice,Some rice plants have dark patches near the stem base.
+2026-09-04,Tago,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-10-07,Tago,Rice,Heavy rain caused water to remain in the rice field.
+2026-08-10,Tago,Rice,The irrigation canal is not supplying enough water.
+2026-09-13,Tago,Rice,There are signs of insects feeding on the rice leaves.
+2026-10-16,Tago,Rice,Small insects are gathering around the rice stems.
+2026-08-19,Tago,Rice,Brown spots are appearing on several rice leaves.
+2026-09-22,Tago,Rice,Some rice plants are wilting because the field is dry.
+2026-09-02,Tago,Corn,Worms are feeding on the young corn leaves.
+2026-10-05,Tago,Corn,Some corn plants appear nutrient deficient.
+2026-08-08,Tago,Corn,The soil is dry and several corn plants are wilting.
+2026-09-11,Tago,Corn,White fungus is appearing on several corn cobs.
+2026-10-14,Tago,Corn,Heavy rain flattened part of the corn field.
+2026-08-17,Tago,Corn,Corn leaves are rolling because of hot and dry weather.
+2026-09-20,Tago,Corn,Strong winds damaged several corn stalks.
+2026-10-23,Tago,Corn,Lower corn leaves are pale and the plants look weak.
+2026-10-03,Tago,Coconut,There are holes in the coconut crown.
+2026-08-06,Tago,Coconut,Heavy rain damaged some coconut branches.
+2026-09-09,Tago,Coconut,Strong winds broke several coconut fronds.
+2026-10-12,Tago,Coconut,The palms are producing fewer nuts than usual.
+2026-08-15,Tago,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-09-18,Tago,Coconut,Insects are damaging the young coconut leaves.
+2026-10-21,Tago,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-08-24,Tago,Coconut,Some young coconut fruits are falling early.
+2026-09-27,Tago,Coconut,Coconut leaves have brown tips and dry edges.
+2026-08-04,Tago,Banana,Small black aphids with ants are present on the plants.
+2026-09-07,Tago,Banana,Aphids are found on the underside of banana leaves.
+2026-10-10,Tago,Banana,Several banana plants have weak stems and poor growth.
+2026-08-13,Tago,Banana,The banana plants are wilting because the soil is dry.
+2026-09-16,Tago,Banana,Insects are feeding on young banana leaves.
+2026-10-19,Tago,Banana,Strong rains caused several banana plants to fall over.
+2026-08-22,Tago,Banana,Older banana leaves have dark streaks and spots.
+2026-09-05,Tago,Vegetables,Several seedlings were damaged by heavy rain.
+2026-10-08,Tago,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-08-11,Tago,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-09-14,Tago,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-17,Tago,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-08-20,Tago,Vegetables,Vegetable seedlings are turning yellow and growing slowly.
+2026-09-23,Tago,Vegetables,Tomato leaves are developing brown spots.
+2026-10-26,Tago,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-09-03,Bislig,Rice,Several rice stalks are bending after strong winds.
+2026-10-06,Bislig,Rice,Rice leaves have white streaks and appear damaged.
+2026-08-09,Bislig,Rice,Some rice plants are wilting because the field is dry.
+2026-09-12,Bislig,Rice,Rats are damaging young rice plants in parts of the field.
+2026-10-15,Bislig,Rice,Heavy rain caused water to remain in the rice field.
+2026-08-18,Bislig,Rice,Small insects are gathering around the rice stems.
+2026-09-21,Bislig,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-10-24,Bislig,Rice,Brown spots are appearing on several rice leaves.
+2026-10-04,Bislig,Corn,White fungus is appearing on several corn cobs.
+2026-08-07,Bislig,Corn,Strong winds damaged several corn stalks.
+2026-09-10,Bislig,Corn,Lower corn leaves are pale and the plants look weak.
+2026-10-13,Bislig,Corn,Rats are eating some of the developing corn cobs.
+2026-08-16,Bislig,Corn,The soil is dry and several corn plants are wilting.
+2026-09-19,Bislig,Corn,Several plants have holes in their leaves from insects.
+2026-08-05,Bislig,Coconut,There are holes in the coconut crown.
+2026-09-08,Bislig,Coconut,Several coconut leaves are turning brown.
+2026-10-11,Bislig,Coconut,Heavy rain damaged some coconut branches.
+2026-08-14,Bislig,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-09-17,Bislig,Coconut,Strong winds broke several coconut fronds.
+2026-10-20,Bislig,Coconut,Coconut leaves have brown tips and dry edges.
+2026-08-23,Bislig,Coconut,Insects are damaging the young coconut leaves.
+2026-09-26,Bislig,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-09-06,Bislig,Banana,Several banana plants have weak stems and poor growth.
+2026-10-09,Bislig,Banana,Small black aphids with ants are present on the plants.
+2026-08-12,Bislig,Banana,Heavy rain damaged several banana plants.
+2026-09-15,Bislig,Banana,Banana leaves have dark spots spreading across the surface.
+2026-10-18,Bislig,Banana,Insects are feeding on young banana leaves.
+2026-08-21,Bislig,Banana,Strong rains caused several banana plants to fall over.
+2026-09-24,Bislig,Banana,The banana bunches are small and the leaves look pale.
+2026-10-27,Bislig,Banana,The banana plants are wilting because the soil is dry.
+2026-10-07,Bislig,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-10,Bislig,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-09-13,Bislig,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-16,Bislig,Vegetables,Several seedlings were damaged by heavy rain.
+2026-08-19,Bislig,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-09-22,Bislig,Vegetables,White powder is appearing on the squash leaves.
+2026-10-25,Bislig,Vegetables,Tomato leaves are developing brown spots.
+2026-08-28,Bislig,Vegetables,Strong rain washed out some vegetable seedbeds.
+2026-09-03,Bislig,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-10-06,Bislig,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-10-05,Tandag,Rice,Small insects are gathering around the rice stems.
+2026-08-08,Tandag,Rice,The rice plants look weak and may need additional nutrients.
+2026-09-11,Tandag,Rice,Some rice plants have dark patches near the stem base.
+2026-10-14,Tandag,Rice,Several rice stalks are bending after strong winds.
+2026-08-17,Tandag,Rice,Rice leaves have white streaks and appear damaged.
+2026-09-20,Tandag,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-10-23,Tandag,Rice,Brown spots are appearing on several rice leaves.
+2026-08-26,Tandag,Rice,There are signs of insects feeding on the rice leaves.
+2026-08-06,Tandag,Corn,Heavy rain flattened part of the corn field.
+2026-09-09,Tandag,Corn,Corn leaves are rolling because of hot and dry weather.
+2026-10-12,Tandag,Corn,The soil is dry and several corn plants are wilting.
+2026-08-15,Tandag,Corn,Mold is developing on corn cobs after rainy weather.
+2026-09-18,Tandag,Corn,Some corn plants appear nutrient deficient.
+2026-10-21,Tandag,Corn,Rats are eating some of the developing corn cobs.
+2026-08-24,Tandag,Corn,Lower corn leaves are pale and the plants look weak.
+2026-09-07,Tandag,Coconut,Insects are damaging the young coconut leaves.
+2026-10-10,Tandag,Coconut,Heavy rain damaged some coconut branches.
+2026-08-13,Tandag,Coconut,Several coconut leaves are turning brown.
+2026-09-16,Tandag,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-10-19,Tandag,Coconut,Strong winds broke several coconut fronds.
+2026-08-22,Tandag,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-09-25,Tandag,Coconut,There are holes in the coconut crown.
+2026-10-28,Tandag,Coconut,The coconut trees appear stressed and have fewer healthy leaves.
+2026-10-08,Tandag,Banana,Strong rains caused several banana plants to fall over.
+2026-08-11,Tandag,Banana,Heavy rain damaged several banana plants.
+2026-09-14,Tandag,Banana,Small black aphids with ants are present on the plants.
+2026-10-17,Tandag,Banana,The banana plants are wilting because the soil is dry.
+2026-08-20,Tandag,Banana,Aphids are found on the underside of banana leaves.
+2026-09-23,Tandag,Banana,Several banana plants have weak stems and poor growth.
+2026-10-26,Tandag,Banana,The banana bunches are small and the leaves look pale.
+2026-08-01,Tandag,Banana,Older banana leaves have dark streaks and spots.
+2026-09-04,Tandag,Banana,Insects are feeding on young banana leaves.
+2026-08-09,Tandag,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-09-12,Tandag,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-10-15,Tandag,Vegetables,Tomato leaves are developing brown spots.
+2026-08-18,Tandag,Vegetables,Caterpillars are eating holes in the vegetable leaves.
+2026-09-21,Tandag,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-24,Tandag,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-27,Tandag,Vegetables,Several seedlings were damaged by heavy rain.
+2026-09-02,Tandag,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-08-07,Lianga,Rice,Some rice plants are wilting because the field is dry.
+2026-09-10,Lianga,Rice,Rice leaves have white streaks and appear damaged.
+2026-10-13,Lianga,Rice,The irrigation canal is not supplying enough water.
+2026-08-16,Lianga,Rice,Heavy rain caused water to remain in the rice field.
+2026-09-19,Lianga,Rice,There are signs of insects feeding on the rice leaves.
+2026-10-22,Lianga,Rice,Several rice stalks are bending after strong winds.
+2026-09-08,Lianga,Corn,Rats are eating some of the developing corn cobs.
+2026-10-11,Lianga,Corn,Lower corn leaves are pale and the plants look weak.
+2026-08-14,Lianga,Corn,Mold is developing on corn cobs after rainy weather.
+2026-09-17,Lianga,Corn,Several plants have holes in their leaves from insects.
+2026-10-20,Lianga,Corn,Corn leaves are turning yellow and the plants are growing slowly.
+2026-08-23,Lianga,Corn,Heavy rain flattened part of the corn field.
+2026-09-26,Lianga,Corn,White fungus is appearing on several corn cobs.
+2026-10-01,Lianga,Corn,Strong winds damaged several corn stalks.
+2026-10-09,Lianga,Coconut,Some young coconut fruits are falling early.
+2026-08-12,Lianga,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-09-15,Lianga,Coconut,Beetles are boring into the coconut trunks.
+2026-10-18,Lianga,Coconut,The palms are producing fewer nuts than usual.
+2026-08-21,Lianga,Coconut,Coconut leaves have brown tips and dry edges.
+2026-09-24,Lianga,Coconut,Several coconut leaves are turning brown.
+2026-10-27,Lianga,Coconut,The coconut trees appear stressed and have fewer healthy leaves.
+2026-08-02,Lianga,Coconut,Insects are damaging the young coconut leaves.
+2026-08-10,Lianga,Banana,The banana bunches are small and the leaves look pale.
+2026-09-13,Lianga,Banana,Heavy rain damaged several banana plants.
+2026-10-16,Lianga,Banana,Older banana leaves have dark streaks and spots.
+2026-08-19,Lianga,Banana,Strong rains caused several banana plants to fall over.
+2026-09-22,Lianga,Banana,Several banana plants have weak stems and poor growth.
+2026-10-25,Lianga,Banana,Small black aphids with ants are present on the plants.
+2026-08-28,Lianga,Banana,Some banana leaves are yellowing from the edges.
+2026-09-03,Lianga,Banana,Insects are feeding on young banana leaves.
+2026-10-06,Lianga,Banana,Banana plants are growing slowly due to lack of fertilizer.
+2026-08-09,Lianga,Banana,The banana plants are wilting because the soil is dry.
+2026-09-11,Lianga,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-14,Lianga,Vegetables,Tomato leaves are developing brown spots.
+2026-08-17,Lianga,Vegetables,Several seedlings were damaged by heavy rain.
+2026-09-20,Lianga,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-10-23,Lianga,Vegetables,White powder is appearing on the squash leaves.
+2026-08-26,Lianga,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-09-01,Lianga,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-10-04,Lianga,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-09-09,Marihatag,Rice,Rats are damaging young rice plants in parts of the field.
+2026-10-12,Marihatag,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-08-15,Marihatag,Rice,Brown spots are appearing on several rice leaves.
+2026-09-18,Marihatag,Rice,Some rice plants have dark patches near the stem base.
+2026-10-21,Marihatag,Rice,Small insects are gathering around the rice stems.
+2026-08-24,Marihatag,Rice,Several rice stalks are bending after strong winds.
+2026-09-27,Marihatag,Rice,The irrigation canal is not supplying enough water.
+2026-10-02,Marihatag,Rice,There are signs of insects feeding on the rice leaves.
+2026-10-10,Marihatag,Corn,Some corn plants appear nutrient deficient.
+2026-08-13,Marihatag,Corn,Mold is developing on corn cobs after rainy weather.
+2026-09-16,Marihatag,Corn,Lower corn leaves are pale and the plants look weak.
+2026-10-19,Marihatag,Corn,Corn leaves are rolling because of hot and dry weather.
+2026-08-22,Marihatag,Corn,Several plants have holes in their leaves from insects.
+2026-09-25,Marihatag,Corn,White fungus is appearing on several corn cobs.
+2026-08-11,Marihatag,Coconut,Coconut leaves have brown tips and dry edges.
+2026-09-14,Marihatag,Coconut,The palms are producing fewer nuts than usual.
+2026-10-17,Marihatag,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-08-20,Marihatag,Coconut,Beetles are boring into the coconut trunks.
+2026-09-23,Marihatag,Coconut,Heavy rain damaged some coconut branches.
+2026-10-26,Marihatag,Coconut,Strong winds broke several coconut fronds.
+2026-08-01,Marihatag,Coconut,Insects are damaging the young coconut leaves.
+2026-09-04,Marihatag,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-10-07,Marihatag,Coconut,The coconut trees appear stressed and have fewer healthy leaves.
+2026-09-12,Marihatag,Banana,Small black aphids with ants are present on the plants.
+2026-10-15,Marihatag,Banana,Banana plants are growing slowly due to lack of fertilizer.
+2026-08-18,Marihatag,Banana,Insects are feeding on young banana leaves.
+2026-09-21,Marihatag,Banana,Several banana plants have weak stems and poor growth.
+2026-10-24,Marihatag,Banana,The banana bunches are small and the leaves look pale.
+2026-08-27,Marihatag,Banana,Heavy rain damaged several banana plants.
+2026-09-02,Marihatag,Banana,Aphids are found on the underside of banana leaves.
+2026-10-05,Marihatag,Banana,Some banana leaves are yellowing from the edges.
+2026-08-08,Marihatag,Banana,Banana leaves have dark spots spreading across the surface.
+2026-10-13,Marihatag,Vegetables,Several seedlings were damaged by heavy rain.
+2026-08-16,Marihatag,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-09-19,Marihatag,Vegetables,White powder is appearing on the squash leaves.
+2026-10-22,Marihatag,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-08-25,Marihatag,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-09-28,Marihatag,Vegetables,Tomato leaves are developing brown spots.
+2026-10-03,Marihatag,Vegetables,Vegetable seedlings are turning yellow and growing slowly.
+2026-08-06,Marihatag,Vegetables,Strong rain washed out some vegetable seedbeds.
+2026-10-11,San Miguel,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-08-14,San Miguel,Rice,Small insects are gathering around the rice stems.
+2026-09-17,San Miguel,Rice,The irrigation canal is not supplying enough water.
+2026-10-20,San Miguel,Rice,Rice leaves have white streaks and appear damaged.
+2026-08-23,San Miguel,Rice,Brown spots are appearing on several rice leaves.
+2026-09-26,San Miguel,Rice,Heavy rain caused water to remain in the rice field.
+2026-08-12,San Miguel,Corn,Strong winds damaged several corn stalks.
+2026-09-15,San Miguel,Corn,Worms are feeding on the young corn leaves.
+2026-10-18,San Miguel,Corn,Mold is developing on corn cobs after rainy weather.
+2026-08-21,San Miguel,Corn,Some corn plants appear nutrient deficient.
+2026-09-24,San Miguel,Corn,Several plants have holes in their leaves from insects.
+2026-10-27,San Miguel,Corn,Rats are eating some of the developing corn cobs.
+2026-08-02,San Miguel,Corn,White fungus is appearing on several corn cobs.
+2026-09-13,San Miguel,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-10-16,San Miguel,Coconut,Insects are damaging the young coconut leaves.
+2026-08-19,San Miguel,Coconut,Heavy rain damaged some coconut branches.
+2026-09-22,San Miguel,Coconut,Some young coconut fruits are falling early.
+2026-10-25,San Miguel,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-08-28,San Miguel,Coconut,There are holes in the coconut crown.
+2026-09-03,San Miguel,Coconut,The palms are producing fewer nuts than usual.
+2026-10-06,San Miguel,Coconut,Strong winds broke several coconut fronds.
+2026-08-09,San Miguel,Coconut,Several coconut leaves are turning brown.
+2026-10-14,San Miguel,Banana,Strong rains caused several banana plants to fall over.
+2026-08-17,San Miguel,Banana,Small black aphids with ants are present on the plants.
+2026-09-20,San Miguel,Banana,Heavy rain damaged several banana plants.
+2026-10-23,San Miguel,Banana,Banana plants are growing slowly due to lack of fertilizer.
+2026-08-26,San Miguel,Banana,Insects are feeding on young banana leaves.
+2026-09-01,San Miguel,Banana,The banana plants are wilting because the soil is dry.
+2026-10-04,San Miguel,Banana,The banana bunches are small and the leaves look pale.
+2026-08-07,San Miguel,Banana,Older banana leaves have dark streaks and spots.
+2026-09-10,San Miguel,Banana,Some banana leaves are yellowing from the edges.
+2026-10-13,San Miguel,Banana,Banana leaves have dark spots spreading across the surface.
+2026-08-15,San Miguel,Vegetables,Strong rain washed out some vegetable seedbeds.
+2026-09-18,San Miguel,Vegetables,White powder is appearing on the squash leaves.
+2026-10-21,San Miguel,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-08-24,San Miguel,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-09-27,San Miguel,Vegetables,Caterpillars are eating holes in the vegetable leaves.
+2026-10-02,San Miguel,Vegetables,Eggplant leaves show signs of powdery mildew.
+2026-08-05,San Miguel,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-09-08,San Miguel,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-08-13,Barobo,Rice,Small insects are gathering around the rice stems.
+2026-09-16,Barobo,Rice,Brown spots are appearing on several rice leaves.
+2026-10-19,Barobo,Rice,Some rice plants have dark patches near the stem base.
+2026-08-22,Barobo,Rice,The rice plants look weak and may need additional nutrients.
+2026-09-25,Barobo,Rice,Rice leaves have white streaks and appear damaged.
+2026-10-28,Barobo,Rice,Rats are damaging young rice plants in parts of the field.
+2026-08-03,Barobo,Rice,Heavy rain caused water to remain in the rice field.
+2026-09-06,Barobo,Rice,Rice leaves are turning yellow and growth is slower than usual.
+2026-10-09,Barobo,Rice,Several rice stalks are bending after strong winds.
+2026-09-14,Barobo,Corn,The soil is dry and several corn plants are wilting.
+2026-10-17,Barobo,Corn,Rats are eating some of the developing corn cobs.
+2026-08-20,Barobo,Corn,Worms are feeding on the young corn leaves.
+2026-09-23,Barobo,Corn,Corn leaves are turning yellow and the plants are growing slowly.
+2026-10-26,Barobo,Corn,Some corn plants appear nutrient deficient.
+2026-08-01,Barobo,Corn,Heavy rain flattened part of the corn field.
+2026-09-04,Barobo,Corn,White fungus is appearing on several corn cobs.
+2026-10-07,Barobo,Corn,Lower corn leaves are pale and the plants look weak.
+2026-08-10,Barobo,Corn,Corn leaves are rolling because of hot and dry weather.
+2026-10-15,Barobo,Coconut,The coconut trees appear stressed and have fewer healthy leaves.
+2026-08-18,Barobo,Coconut,The palms are producing fewer nuts than usual.
+2026-09-21,Barobo,Coconut,There are holes in the coconut crown.
+2026-10-24,Barobo,Coconut,Strong winds broke several coconut fronds.
+2026-08-27,Barobo,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-09-02,Barobo,Coconut,Several coconut leaves are turning brown.
+2026-08-16,Barobo,Banana,Banana plants are growing slowly due to lack of fertilizer.
+2026-09-19,Barobo,Banana,Heavy rain damaged several banana plants.
+2026-10-22,Barobo,Banana,The banana plants are wilting because the soil is dry.
+2026-08-25,Barobo,Banana,Aphids are found on the underside of banana leaves.
+2026-09-28,Barobo,Banana,Small black aphids with ants are present on the plants.
+2026-10-03,Barobo,Banana,Some banana leaves are yellowing from the edges.
+2026-08-06,Barobo,Banana,Strong rains caused several banana plants to fall over.
+2026-09-17,Barobo,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-10-20,Barobo,Vegetables,Strong rain washed out some vegetable seedbeds.
+2026-08-23,Barobo,Vegetables,Vegetable seedlings are turning yellow and growing slowly.
+2026-09-26,Barobo,Vegetables,Several seedlings were damaged by heavy rain.
+2026-10-01,Barobo,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-08-04,Barobo,Vegetables,Caterpillars are eating holes in the vegetable leaves.
+2026-09-07,Barobo,Vegetables,White powder is appearing on the squash leaves.
+2026-10-10,Barobo,Vegetables,Tomato leaves are developing brown spots.
+2026-08-13,Barobo,Vegetables,Tomato plants are wilting despite regular watering.
+2026-09-15,Cantilan,Rice,The rice plants look weak and may need additional nutrients.
+2026-10-18,Cantilan,Rice,Heavy rain caused water to remain in the rice field.
+2026-08-21,Cantilan,Rice,Brown spots are appearing on several rice leaves.
+2026-09-24,Cantilan,Rice,The irrigation canal is not supplying enough water.
+2026-10-27,Cantilan,Rice,Small insects are gathering around the rice stems.
+2026-10-16,Cantilan,Corn,Heavy rain flattened part of the corn field.
+2026-08-19,Cantilan,Corn,Corn leaves are turning yellow and the plants are growing slowly.
+2026-09-22,Cantilan,Corn,Corn leaves are rolling because of hot and dry weather.
+2026-10-25,Cantilan,Corn,Worms are feeding on the young corn leaves.
+2026-08-28,Cantilan,Corn,Lower corn leaves are pale and the plants look weak.
+2026-09-03,Cantilan,Corn,White fungus is appearing on several corn cobs.
+2026-10-06,Cantilan,Corn,Mold is developing on corn cobs after rainy weather.
+2026-08-09,Cantilan,Corn,The soil is dry and several corn plants are wilting.
+2026-09-12,Cantilan,Corn,Several plants have holes in their leaves from insects.
+2026-08-17,Cantilan,Coconut,Beetles are boring into the coconut trunks.
+2026-09-20,Cantilan,Coconut,Some young coconut fruits are falling early.
+2026-10-23,Cantilan,Coconut,Heavy rain damaged some coconut branches.
+2026-08-26,Cantilan,Coconut,Coconut fronds are drooping and becoming yellow.
+2026-09-01,Cantilan,Coconut,Several coconut trees have weak and yellowing fronds.
+2026-10-04,Cantilan,Coconut,There are holes in the coconut crown.
+2026-08-07,Cantilan,Coconut,Insects are damaging the young coconut leaves.
+2026-09-10,Cantilan,Coconut,Coconut leaves have brown tips and dry edges.
+2026-09-18,Cantilan,Banana,Older banana leaves have dark streaks and spots.
+2026-10-21,Cantilan,Banana,Banana plants are growing slowly due to lack of fertilizer.
+2026-08-24,Cantilan,Banana,Insects are feeding on young banana leaves.
+2026-09-27,Cantilan,Banana,Several banana plants have weak stems and poor growth.
+2026-10-02,Cantilan,Banana,Strong rains caused several banana plants to fall over.
+2026-08-05,Cantilan,Banana,The banana plants are wilting because the soil is dry.
+2026-09-08,Cantilan,Banana,Banana leaves have dark spots spreading across the surface.
+2026-10-11,Cantilan,Banana,Some banana leaves are yellowing from the edges.
+2026-10-19,Cantilan,Vegetables,Heavy storm damaged the vegetable garden beds.
+2026-08-22,Cantilan,Vegetables,Strong rain washed out some vegetable seedbeds.
+2026-09-25,Cantilan,Vegetables,Caterpillars are eating holes in the vegetable leaves.
+2026-10-28,Cantilan,Vegetables,Several seedlings were damaged by heavy rain.
+2026-08-03,Cantilan,Vegetables,White powder is appearing on the squash leaves.
+2026-09-06,Cantilan,Vegetables,The vegetable plants are drying because the soil is very dry.
+2026-10-09,Cantilan,Vegetables,Some vegetable leaves have insect damage and holes.
+2026-08-12,Cantilan,Vegetables,The vegetable plants look weak and may need more nutrients.
+2026-09-15,Cantilan,Vegetables,Tomato plants are wilting despite regular watering.
+2026-10-18,Cantilan,Vegetables,Vegetable seedlings are turning yellow and growing slowly.
