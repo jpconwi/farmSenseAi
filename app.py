@@ -568,8 +568,8 @@ with t_data:
     with st.expander("📚 Dataset source and citation"):
         st.markdown(
             "**Source:** *synthetic* (computer-generated) sample data, not real farmer reports, created with `gen_data.py` "
-            "(random seeds 7 and 11) for CS 315 Activity 3.\n\n**APA:** Conwi, J. P. (2026). *FarmSense AI farmer reports* "
-            "[Synthetic dataset]. Generated with gen_data.py (random seeds 7 and 11) for CS 315 Activity 3, North Eastern Mindanao State University."
+            "and `gen_more_data.py` (random seeds 7, 11 and 21) for CS 315 Activity 3.\n\n**APA:** Conwi, J. P. (2026). *FarmSense AI farmer reports* "
+            "[Synthetic dataset]. Generated with gen_data.py and gen_more_data.py (random seeds 7, 11 and 21) for CS 315 Activity 3, North Eastern Mindanao State University."
         )
 
 st.markdown("---")
