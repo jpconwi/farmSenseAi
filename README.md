@@ -1,89 +1,181 @@
-# 🌾 FarmSense AI — Farmer Report Analyzer
+# 🌾 FarmSense AI
 
-**CS 315 – Application Development and Emerging Technologies — Activity 3**
+### Turning farmers' words into insights
 
-## 1. Project Purpose
+**A GenAI-powered farmer report analyzer built with Streamlit, Pandas, Plotly, and Hugging Face.**
 
-FarmSense AI is a GenAI-powered Streamlit application that analyzes farmer
-reports about agricultural problems. It loads a CSV dataset of unstructured
-farmer reports, cleans it with Pandas, uses AI models on Hugging Face Inference Providers (Qwen2.5-7B-Instruct first, then automatic fallbacks Qwen3-8B and Llama-3.1-8B-Instruct) plus a sentiment model to classify and
-summarize each report, displays interactive charts, and includes an AI
-chatbot that can answer questions about the dataset.
+*CS 315 – Application Development and Emerging Technologies · Activity 3*
+*Author: John Patrick T. Conwi · North Eastern Mindanao State University (NEMSU)*
 
-## 2. Features
+---
 
-- Load and clean a CSV dataset with Pandas (remove empty rows, duplicates, fix dates, handle missing values)
-- Filter reports by crop, location, and date range
-- AI classification of each report into: **Pest, Disease, Water, Weather, Nutrient, Other** — plus severity (Low/Moderate/High), keywords, and a short summary
-- **Sentiment analysis** of each report using the `cardiffnlp/twitter-roberta-base-sentiment-latest` model, shown as a chart (new)
-- **Automatic model fallback**: if Qwen2.5-7B-Instruct fails, the app tries Qwen3-8B, then Llama-3.1-8B-Instruct (new)
-- **Choice of AI provider**: Hugging Face (cloud) or Ollama (runs locally, no token needed) (new)
-- **Disk caching** of AI results (`data/ai_cache.json`), so reports already analyzed aren't sent to the API again (new)
-- **Retry AI analysis** button in the sidebar (new)
-- Dashboard metric cards: total reports, number of crops, number of locations, most common problem
-- Interactive Plotly charts: reports by crop, reports by location, problem categories, and report sentiment
-- **AI Report Analyzer**: paste in a brand-new report and get an instant AI classification
-- **"Ask FarmSense AI" chatbot**: ask natural-language questions about the dataset, answered only from the actual data (no made-up answers)
-- Beginner-friendly error handling everywhere (missing file, empty data, missing API key, API errors, bad AI responses, missing columns, no internet)
-- App still runs without a token: the dataset and charts work, and only the AI features are disabled, with a clear message
+## 📑 Table of Contents
 
-## 3. Dataset Description
+1. [The Problem](#1-the-problem)
+2. [The Solution](#2-the-solution)
+3. [Objectives](#3-objectives)
+4. [Features](#4-features)
+5. [How It Works](#5-how-it-works)
+6. [Dataset](#6-dataset)
+7. [Technologies Used](#7-technologies-used)
+8. [Project Structure](#8-project-structure)
+9. [Installation](#9-installation)
+10. [Configure the AI Token](#10-configure-the-ai-token)
+11. [Run the App](#11-run-the-app)
+12. [Deploy to Streamlit Community Cloud](#12-deploy-to-streamlit-community-cloud)
+13. [Troubleshooting](#13-troubleshooting)
+14. [Future Improvements](#14-future-improvements)
+15. [CS 315 Activity 3 Requirements](#15-cs-315-activity-3-requirements)
+16. [Dataset Citation](#16-dataset-citation)
 
-File: `data/farmer_reports.csv`
+---
 
-| Column     | Description                                   |
-|------------|------------------------------------------------|
-| `date`     | Date the report was submitted (YYYY-MM-DD)      |
-| `location` | Barangay/town where the report came from        |
-| `crop`     | Crop affected (Rice, Corn, Coconut, Banana, Vegetables) |
-| `report`   | Free-text description of the problem, in the farmer's own words |
+## 1. The Problem
 
-The included sample dataset has 48 rows and intentionally contains a few
-messy rows (a duplicate, an empty report, a missing date, extra whitespace)
-so the cleaning step in `app.py` has real work to do. You can replace this
-file with your own data as long as you keep the same 4 columns.
+Farmers describe crop problems in their own words:
 
-## 4. Technologies Used
+> *"The rice leaves have yellow spots and several plants are dying."*
 
-- **Python 3**
-- **Streamlit** — the web app framework/UI
-- **Pandas** — data loading and cleaning
-- **Hugging Face Inference Providers** (chat models `Qwen/Qwen2.5-7B-Instruct` → `Qwen/Qwen3-8B` → `meta-llama/Llama-3.1-8B-Instruct`, tried in that order, plus `cardiffnlp/twitter-roberta-base-sentiment-latest` for sentiment; via the `requests` Python package) — GenAI classification,
-  summary, and chatbot
-- **Plotly** — interactive charts
+Text like this is hard to count, compare, or act on across a whole town or province. Agricultural offices cannot easily answer questions such as:
 
-## 5. Project Structure
+- What are the most common problems right now: pests, disease, water, or weather?
+- Which crops and which places are hit hardest?
+- Which reports are serious enough to need attention first?
+
+## 2. The Solution
+
+**FarmSense AI** reads unstructured farmer reports and converts them into organized, visual, searchable information. It cleans the data, uses AI language models to **classify each report** (category, severity, keywords, summary), measures **sentiment**, shows everything on an **interactive dashboard**, and lets users **ask questions in plain language** through a chatbot that answers only from the real data.
+
+---
+
+## 3. Objectives
+
+**General objective:** To develop a web-based system that uses Generative AI to analyze farmer reports and turn free-text problem descriptions into organized, actionable information.
+
+**Specific objectives:**
+
+1. Load and clean a farmer report dataset using Pandas.
+2. Automatically classify each report into a problem category and severity level using AI.
+3. Measure the sentiment (urgency/negativity) of each report.
+4. Visualize results with an interactive, filterable dashboard.
+5. Analyze brand-new reports instantly when a user pastes them in.
+6. Answer natural-language questions using only the actual dataset (no invented answers).
+7. Handle errors gracefully and be ready for deployment on Streamlit Community Cloud.
+
+---
+
+## 4. Features
+
+| Area | Feature |
+|---|---|
+| 🧹 **Data cleaning** | Loads a CSV with Pandas; trims whitespace, removes empty rows and duplicates, fixes dates, fills missing values |
+| 🔎 **Filtering** | Filter by crop, location, and date range |
+| 🧠 **AI classification** | Sorts each report into **Pest, Disease, Water, Weather, Nutrient, or Other**, with severity (**Low / Moderate / High**), keywords, and a short summary |
+| 😊 **Sentiment analysis** | Labels each report positive, neutral, or negative using `cardiffnlp/twitter-roberta-base-sentiment-latest` |
+| 🔁 **Model fallback** | If the first AI model fails, the app automatically tries the next: Qwen2.5-7B → Qwen3-8B → Llama-3.1-8B |
+| 🔌 **Two AI providers** | Hugging Face (cloud) or Ollama (runs locally, no token needed) |
+| 💾 **Disk caching** | Saves AI results to `data/ai_cache.json` so reports already analyzed are not sent to the API again |
+| 🔄 **Retry button** | Re-run the AI analysis from the sidebar |
+| 📊 **Dashboard cards** | Total reports, number of crops, number of locations, most common problem |
+| 📈 **Interactive charts** | Plotly charts: reports by crop, by location, problem categories, and sentiment |
+| ✍️ **AI Report Analyzer** | Paste a new report and get an instant classification |
+| 💬 **"Ask FarmSense AI" chatbot** | Ask questions like *"Which crop has the most pest problems?"*; answers come only from the dataset summary |
+| 🛡️ **Error handling** | Friendly messages for a missing file, empty data, missing columns, missing token, API errors, bad AI output, and no internet |
+| 🪶 **Works without a token** | The dataset and charts still work; only the AI features are disabled, with a clear message and no fake results |
+
+---
+
+## 5. How It Works
+
+```mermaid
+flowchart LR
+    A[📄 farmer_reports.csv] --> B[🧹 Clean with Pandas]
+    B --> C[🔎 Sidebar filters]
+    C --> D[🧠 AI classification<br/>category · severity · keywords · summary]
+    C --> E[😊 Sentiment analysis]
+    D --> F[📊 Dashboard & Plotly charts]
+    E --> F
+    D --> G[💬 Ask FarmSense AI chatbot]
+    H[✍️ New report typed by user] --> D
+```
+
+**Step by step**
+
+1. **Load and clean:** `load_and_clean_data()` reads the CSV and removes empty reports and duplicates, trims spaces, converts dates, drops rows with unreadable dates, and labels missing crop/location as "Unknown".
+2. **Filter:** the user narrows the data by crop, location, and date.
+3. **Analyze:** reports are sent to the AI in small groups. Results are cached, so repeat runs are fast and use fewer API calls.
+4. **Visualize:** metric cards and Plotly charts update with the filters.
+5. **Ask:** the chatbot receives a summary of the dataset and is instructed to answer **only** from it. If the answer isn't in the data, it says so.
+
+---
+
+## 6. Dataset
+
+**File:** `data/farmer_reports.csv`
+
+| Column | Description |
+|---|---|
+| `date` | Date the report was submitted (YYYY-MM-DD) |
+| `location` | Barangay/town where the report came from |
+| `crop` | Crop affected: Rice, Corn, Coconut, Banana, or Vegetables |
+| `report` | Free-text description of the problem, in the farmer's own words |
+
+**At a glance**
+
+- **Type:** synthetic (computer-generated) sample data, *not real farmer data*
+- **Size:** 50 raw rows → 47 rows after cleaning
+- **Coverage:** 5 crops, 8 towns in the Caraga region, reports dated Aug–Oct 2026
+- **Generated by:** `gen_data.py` (random seed 7, so it is reproducible)
+- **Intentionally messy:** contains an empty report, a duplicate, a missing date, and extra whitespace so the cleaning step has real work to do
+
+You can replace the file with your own data as long as it keeps the same 4 columns.
+
+---
+
+## 7. Technologies Used
+
+| Technology | Purpose |
+|---|---|
+| **Python 3** | Programming language |
+| **Streamlit** | Web app framework and user interface |
+| **Pandas** | Data loading and cleaning |
+| **Plotly** | Interactive charts |
+| **Hugging Face Inference Providers** | GenAI classification, summaries, and chatbot (`Qwen/Qwen2.5-7B-Instruct` → `Qwen/Qwen3-8B` → `meta-llama/Llama-3.1-8B-Instruct`) plus the `cardiffnlp/twitter-roberta-base-sentiment-latest` sentiment model |
+| **Ollama** *(optional)* | Run the AI locally on your own computer |
+| **Requests** | Calling the AI services |
+
+---
+
+## 8. Project Structure
 
 ```
 FarmSenseAI/
 │
 ├── app.py                     # Main Streamlit app (UI + dashboard)
+├── gen_data.py                # Script that generates the synthetic dataset
 ├── requirements.txt           # Python packages needed
 ├── README.md                  # This file
 │
 ├── data/
-│   └── farmer_reports.csv     # The dataset
+│   ├── farmer_reports.csv     # The dataset
+│   └── ai_cache.json          # Cached AI results (auto-generated)
 │
 ├── utils/
-│   ├── __init__.py            # Makes "utils" an importable Python package
-│   └── ai_analysis.py         # All functions that call the AI model
+│   ├── __init__.py            # Makes "utils" an importable package
+│   └── ai_analysis.py         # All functions that call the AI models
 │
-└── .streamlit/
-    └── secrets.toml           # Your Hugging Face token goes here (kept private)
+├── .streamlit/
+│   └── secrets.toml           # Your Hugging Face token (kept private)
+│
+└── .devcontainer/
+    └── devcontainer.json      # Codespaces / dev container setup
 ```
 
-Where each file goes, in plain terms:
-- Put the whole `FarmSenseAI` folder anywhere on your computer (e.g.
-  Desktop or Documents).
-- `app.py` stays in the top-level `FarmSenseAI/` folder.
-- `farmer_reports.csv` must be inside `FarmSenseAI/data/`.
-- `ai_analysis.py` must be inside `FarmSenseAI/utils/`.
-- `secrets.toml` must be inside `FarmSenseAI/.streamlit/` (note the dot at
-  the start of the folder name — it's a hidden folder).
+---
 
-## 6. Installation Instructions
+## 9. Installation
 
-Open a terminal (Command Prompt, PowerShell, or Terminal on Mac) and run:
+Open a terminal (Command Prompt, PowerShell, or Terminal) and run:
 
 ```bash
 # 1. Move into the project folder
@@ -93,58 +185,50 @@ cd path/to/FarmSenseAI
 python -m venv venv
 
 # 3. Activate it
-# On Windows:
+# Windows:
 venv\Scripts\activate
-# On Mac/Linux:
+# Mac/Linux:
 source venv/bin/activate
 
 # 4. Install the required packages
 pip install -r requirements.txt
 ```
 
-## 7. How to Configure the Hugging Face Token
+---
 
-1. Create a token at https://huggingface.co/settings/tokens (sign in to
-   Hugging Face, choose a **fine-grained** token, and tick the
-   **"Make calls to Inference Providers"** permission).
-2. Open `.streamlit/secrets.toml` in a text editor.
-3. Replace the placeholder with your real token:
+## 10. Configure the AI Token
+
+1. Go to <https://huggingface.co/settings/tokens> and create a **fine-grained** token with the **"Make calls to Inference Providers"** permission.
+2. Open `.streamlit/secrets.toml` and add your token:
    ```toml
    HF_TOKEN = "hf_your_token_here"
    ```
-4. Save the file. **Do not share this file or upload it to GitHub** — the
-   included `.gitignore` already excludes it for you.
-5. ⚠️ If your key was ever pasted into a chat, document, or committed to a
-   public repo by mistake, treat it as compromised: go back to
-   https://huggingface.co/settings/tokens and delete/regenerate it, then
-   update `secrets.toml` with the new one.
+3. Save the file.
 
-**Prefer to run the AI on your own computer?** Install Ollama, run
-`ollama pull llama3.2:3b`, then pick **Ollama (local)** in the app sidebar.
-No token is needed, but it only works when the app runs on the same computer
-(not on Streamlit Cloud).
+> 🔒 **Keep your token private.** Never share `secrets.toml`, paste the token in a chat or document, or upload it to GitHub. The included `.gitignore` already excludes it. If a token was ever exposed, delete and regenerate it at the link above.
 
-If you skip this step, the app will still run — it will show the raw
-dataset and charts, but AI classification and the chatbot will be disabled
-with a clear on-screen message (no fake results are ever generated).
+**Prefer to run the AI on your own computer?** Install [Ollama](https://ollama.com), run `ollama pull llama3.2:3b`, then choose **Ollama (local)** in the app sidebar. No token is needed, but this only works when the app runs on the same computer (not on Streamlit Cloud).
 
-## 8. How to Run the Application
+If you skip this step, the app still runs: the dataset and charts work, and the AI features show a clear message instead of fake results.
 
-From inside the `FarmSenseAI` folder, with your virtual environment
-activated:
+---
+
+## 11. Run the App
+
+From inside the `FarmSenseAI` folder, with your virtual environment activated:
 
 ```bash
 streamlit run app.py
 ```
 
-Your browser should automatically open `http://localhost:8501`. If it
-doesn't, copy that URL into your browser manually.
+Your browser opens `http://localhost:8501`. If it doesn't, copy that address into your browser.
 
-## 9. Deploy to Streamlit Community Cloud
+---
 
-1. Create a free account at https://share.streamlit.io (sign in with
-   GitHub).
-2. Push your `FarmSenseAI` project to a GitHub repository.
+## 12. Deploy to Streamlit Community Cloud
+
+1. Create a free account at <https://share.streamlit.io> (sign in with GitHub).
+2. Push the project to a GitHub repository:
    ```bash
    git init
    git add .
@@ -153,58 +237,58 @@ doesn't, copy that URL into your browser manually.
    git remote add origin https://github.com/your-username/FarmSenseAI.git
    git push -u origin main
    ```
-   (Because `.streamlit/secrets.toml` is in `.gitignore`, your real API key
-   will **not** be uploaded to GitHub — this is intentional and safe.)
-3. On share.streamlit.io, click **"New app"**.
-4. Select your repository, branch (`main`), and set the main file path to
-   `app.py`.
-5. Before clicking Deploy, open **"Advanced settings" → "Secrets"** and
-   paste:
+   Because `.streamlit/secrets.toml` is in `.gitignore`, your real token is **not** uploaded.
+3. On share.streamlit.io, click **New app**, choose your repository and branch (`main`), and set the main file path to `app.py`.
+4. Open **Advanced settings → Secrets** and paste:
    ```toml
    HF_TOKEN = "hf_your_token_here"
    ```
-6. Click **Deploy**. Streamlit Cloud will install `requirements.txt`
-   automatically and launch your app with a public URL.
-
-## 10. Common Errors and Solutions
-
-| Problem | Likely Cause | Solution |
-|---|---|---|
-| "Could not find the dataset file" | CSV missing or wrong location | Make sure `farmer_reports.csv` is inside `data/` |
-| "No Hugging Face token found" | `secrets.toml` not set up | Follow section 7 above |
-| "AI request failed" | Invalid key, no internet, or the Hugging Face service is down | Check your key, check your internet connection, try again later |
-| "ModuleNotFoundError: No module named 'utils'" | The `utils/` folder wasn't pushed to GitHub | Confirm `utils/__init__.py` and `utils/ai_analysis.py` appear in your GitHub repo, then reboot the app |
-| "The AI returned a response that wasn't valid JSON" | Rare AI formatting hiccup | Click Analyze again — the app never crashes, it just skips that report |
-| App won't start / `ModuleNotFoundError` | Packages not installed | Run `pip install -r requirements.txt` again inside your activated virtual environment |
-| Chart is empty | Filters are too narrow | Widen your Crop/Location/Date filters in the sidebar |
-
-## 11. Future Improvements
-
-- Add a map view showing report locations
-- Let users upload their own CSV file directly in the app
-- Cache AI analysis results per report so re-running filters doesn't
-  re-call the API for reports already analyzed
-- Add multi-language support (Bisaya/Tagalog report input)
-- Add authentication so multiple farmers/agencies can log in and see only
-  their own reports
-
-## 12. How This Project Satisfies CS 315 Activity 3
-
-| Requirement | Where it's implemented |
-|---|---|
-| Dataset loading & cleaning with Pandas | `load_and_clean_data()` in `app.py` — removes empty rows, duplicates, converts dates, handles missing values |
-| GenAI-powered text analysis | `utils/ai_analysis.py` — `analyze_report()` classifies category/severity/keywords/summary via Qwen2.5-7B |
-| Streamlit interactive UI | Sidebar filters, columns, expanders, metrics, buttons, text areas throughout `app.py` |
-| Data visualization | Plotly bar charts (crop, location) and pie chart (categories) |
-| Dataset filtering | Sidebar crop/location/date filters applied before analysis and display |
-| AI chatbot functionality | "Ask FarmSense AI" section — answers questions using a summarized dataset, never invents facts |
-| Deployment readiness for Streamlit Community Cloud | `requirements.txt`, `.streamlit/secrets.toml` pattern, `.gitignore`, and step-by-step deploy instructions above |
+5. Click **Deploy**. Streamlit installs `requirements.txt` and gives you a public URL.
 
 ---
 
-## Dataset Source and Citation
+## 13. Troubleshooting
 
-The dataset in `data/farmer_reports.csv` is a **synthetic (computer-generated) sample dataset**, not real farmer data. It was created by the author for CS 315 Activity 3 with `gen_data.py` (random seed 7). The generator deliberately includes a few messy rows (an empty report, a duplicate, a missing date, extra spaces) to demonstrate data cleaning.
+| Problem | Likely cause | Solution |
+|---|---|---|
+| "Could not find the dataset file" | CSV missing or in the wrong place | Put `farmer_reports.csv` inside `data/` |
+| "No Hugging Face token found" | `secrets.toml` not set up | Follow [section 10](#10-configure-the-ai-token) |
+| "AI request failed" | Invalid token, no internet, or service down | Check your token and connection, then try again |
+| `ModuleNotFoundError: No module named 'utils'` | `utils/` folder wasn't pushed to GitHub | Confirm `utils/__init__.py` and `utils/ai_analysis.py` are in the repo, then reboot the app |
+| "The AI returned a response that wasn't valid JSON" | Rare AI formatting hiccup | Click Analyze again; the app never crashes, it skips that report |
+| App won't start / `ModuleNotFoundError` | Packages not installed | Run `pip install -r requirements.txt` in your virtual environment |
+| A chart is empty | Filters are too narrow | Widen the Crop / Location / Date filters in the sidebar |
+
+---
+
+## 14. Future Improvements
+
+- 🗺️ Map view showing where reports come from
+- 📤 Upload your own CSV directly in the app
+- 🌐 Bisaya/Tagalog report input (multi-language support)
+- 🔐 Login system so agencies and farmers only see their own reports
+- 🌾 Try the system with real farmer reports from local agricultural offices
+
+---
+
+## 15. CS 315 Activity 3 Requirements
+
+| Requirement | Where it's implemented |
+|---|---|
+| Dataset loading & cleaning with Pandas | `load_and_clean_data()` in `app.py` |
+| GenAI-powered text analysis | `analyze_report()` and `analyze_reports_batch()` in `utils/ai_analysis.py` (category, severity, keywords, summary) |
+| Sentiment analysis | `analyze_sentiments()` in `utils/ai_analysis.py` |
+| Streamlit interactive UI | Sidebar filters, metric cards, buttons, text areas, and chat input throughout `app.py` |
+| Data visualization | Plotly charts for crop, location, problem category, and sentiment |
+| Dataset filtering | Sidebar crop / location / date filters applied before analysis and display |
+| AI chatbot | "Ask FarmSense AI" section; `ask_chatbot()` answers only from a dataset summary |
+| Deployment readiness | `requirements.txt`, secrets pattern, `.gitignore`, and the deployment steps above |
+
+---
+
+## 16. Dataset Citation
+
+The dataset in `data/farmer_reports.csv` is a **synthetic (computer-generated) sample dataset**, not real farmer data. It was created by the author for CS 315 Activity 3 with `gen_data.py` (random seed 7).
 
 **APA citation:**
 
