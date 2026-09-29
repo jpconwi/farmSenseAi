@@ -202,3 +202,13 @@ doesn't, copy that URL into your browser manually.
 | Dataset filtering | Sidebar crop/location/date filters applied before analysis and display |
 | AI chatbot functionality | "Ask FarmSense AI" section — answers questions using a summarized dataset, never invents facts |
 | Deployment readiness for Streamlit Community Cloud | `requirements.txt`, `.streamlit/secrets.toml` pattern, `.gitignore`, and step-by-step deploy instructions above |
+
+---
+
+## Dataset Source and Citation
+
+The dataset in `data/farmer_reports.csv` is a **synthetic (computer-generated) sample dataset**, not real farmer data. It was created by the author for CS 315 Activity 3 with `gen_data.py` (random seed 7). The generator deliberately includes a few messy rows (an empty report, a duplicate, a missing date, extra spaces) to demonstrate data cleaning.
+
+**APA citation:**
+
+Conwi, J. P. (2026). *FarmSense AI farmer reports* [Synthetic dataset]. Generated with gen_data.py (random seed 7) for CS 315 Activity 3, North Eastern Mindanao State University.

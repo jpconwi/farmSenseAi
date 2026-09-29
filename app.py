@@ -1,4 +1,22 @@
 """
+app.py
+------
+🌾 FarmSense AI — Farmer Report Analyzer
+
+This is the main Streamlit application file.
+It is organized into clearly labeled sections so a beginner can follow along:
+
+    1.  Page setup
+    2.  Choose AI provider (Hugging Face or Ollama) + create client
+    3.  Load and clean the dataset (Pandas)
+    4.  Sidebar filters
+    5.  Dashboard overview (metric cards)
+    6.  Charts (Reports by Crop / Location / Category)
+    7.  Filtered data table
+    8.  AI Report Analyzer (analyze a NEW report typed by the user)
+    9.  Dataset chatbot ("Ask FarmSense AI")
+
+Run this file with:  streamlit run app.py
 python -m streamlit run app.py
 """
 
@@ -432,6 +450,22 @@ with st.expander("View cleaned & filtered dataset", expanded=True):
         analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "sentiment"]],
         use_container_width=True,
         hide_index=True,
+    )
+
+with st.expander("📚 Dataset source and citation"):
+    st.markdown(
+        "**Source:** This is a *synthetic* (computer-generated) sample dataset. "
+        "It does not contain real farmer reports. It was created by the author for "
+        "CS 315 Activity 3 using the script `gen_data.py` (random seed 7), and "
+        "stored in `data/farmer_reports.csv`. The generator deliberately adds a few "
+        "messy rows (an empty report, a duplicate, a missing date, extra spaces) so "
+        "the data-cleaning step has something to fix."
+    )
+    st.markdown("**Citation (APA):**")
+    st.markdown(
+        "Conwi, J. P. (2026). *FarmSense AI farmer reports* [Synthetic dataset]. "
+        "Generated with gen_data.py (random seed 7) for CS 315 Activity 3, "
+        "North Eastern Mindanao State University."
     )
 
 st.markdown("---")
