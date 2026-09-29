@@ -274,20 +274,35 @@ def _generic(category):
                 symptoms=symptoms, causes=causes, treatment=treatment, prevention=prevention)
 
 
+def _matches(crop, text):
+    """Every knowledge entry that fits this crop + report text, in priority order."""
+    return [e for e in KB
+            if not (e["crops"] and crop not in e["crops"]) and e["pattern"].search(text)]
+
+
 def diagnose(crop, text, category=None):
     """Return the best-matching knowledge entry for one report.
 
     crop      : crop name, or None (then it is guessed from the text)
-    category  : optional AI category (Disease, Pest...). If no specific problem matches,
-                a general entry for that category is returned so the two never contradict.
+    category  : optional AI category (Disease, Pest, Water, Weather, Nutrient, Other).
+                The diagnosis is kept consistent with it:
+                  1. if several entries fit the text, the one whose type equals the AI category wins;
+                  2. an ambiguous "needs field check" entry (type Other) takes the AI category as its type;
+                  3. if nothing specific fits, a general entry for that category is returned.
     """
     t = str(text or "")
     crop = crop or _infer_crop(t)
-    for e in KB:
-        if e["crops"] and crop not in e["crops"]:
-            continue
-        if e["pattern"].search(t):
-            return e
+    hits = _matches(crop, t)
+    if hits:
+        if category:
+            same = next((e for e in hits if e["type"] == category), None)
+            if same:
+                return same
+            first = hits[0]
+            if first["type"] == "Other" and category in TYPE_COLORS and category != "Other":
+                return {**first, "type": category}
+            return first
+        return hits[0]
     if category in GENERIC:
         return _generic(category)
     return FALLBACK
@@ -305,11 +320,16 @@ def match_in_text(text, crop=None):
 
 
 def add_diagnosis(df):
-    """Add likely_issue, issue_type and issue_key columns to a reports DataFrame."""
+    """Add likely_issue, issue_type and issue_key columns to a reports DataFrame.
+
+    If the frame has an AI `category` column, each diagnosis is made consistent with it.
+    """
     if df is None or df.empty or "likely_issue" in df.columns:
         return df
     df = df.copy()
-    ds = [diagnose(c, r) for c, r in zip(df["crop"], df["report"])]
+    cats = df["category"] if "category" in df.columns else [None] * len(df)
+    ds = [diagnose(c, r, None if str(k) in ("Not analyzed", "nan", "None", "—") else k)
+          for c, r, k in zip(df["crop"], df["report"], cats)]
     df["likely_issue"] = [d["name"] for d in ds]
     df["issue_type"] = [d["type"] for d in ds]
     df["issue_key"] = [d["key"] for d in ds]

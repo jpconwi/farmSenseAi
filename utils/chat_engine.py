@@ -152,6 +152,17 @@ def _entry_block(e, sub=None):
     return "\n".join(L)
 
 
+def _problems_of(sub, label):
+    """Specific problems / diseases (with type and count) for one group of reports, plus full details of the top one."""
+    total = len(sub)
+    pc = sub.groupby(["issue_key", "likely_issue", "issue_type"]).size().sort_values(ascending=False)
+    L = [f"**Problems reported for {label}:**"]
+    L += [f"- {n} *({t})*: **{c}** of {total} ({c / total:.0%})" for (_, n, t), c in pc.items()]
+    top_key = pc.index[0][0]
+    L.append("\n" + _entry_block(entry_by_key(top_key), sub[sub["issue_key"] == top_key]))
+    return "\n".join(L)
+
+
 def _problem_and_place(sub, scope, f):
     """Answer 'most common problem + which location reports most' together, always naming the problem."""
     total = len(sub)
@@ -311,7 +322,12 @@ def _answer_impl(question, df, last_filters=None):
         verb = "have" if len(winners.split(", ")) > 1 else "has"
         where = "across all reports" if scope == "all reports" else f"for {scope}"
         word = "fewest" if asc else "most"
-        return {"text": f"**{winners}** {verb} the {word} reports (**{best}** of {total}) {where}.\n\nFull breakdown by {dim}:\n{table}",
+        text = f"**{winners}** {verb} the {word} reports (**{best}** of {total}) {where}.\n\nFull breakdown by {dim}:\n{table}"
+        # "...and what are the problems?" -> also name the specific problems / diseases of the winning group
+        if dim in ("crop", "location") and _has(q, "problem", "issue", "disease", "pest", "wrong", "affect"):
+            win = counts[counts == best].index.tolist()
+            text += "\n\n" + "\n\n".join(_problems_of(sub[sub[dim] == w], w) for w in win[:2]) + "\n\n" + DISCLAIMER
+        return {"text": text,
                 "fig": _count_chart(counts, dim, f"Reports by {dim} · {scope}"), "filters": f}
 
     def subset_chart():
