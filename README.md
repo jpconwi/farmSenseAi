@@ -12,23 +12,20 @@ chatbot that can answer questions about the dataset.
 
 ## 2. Features
 
-- Load and clean a CSV dataset with Pandas (remove empty rows, duplicates,
-  fix dates, handle missing values)
+- Load and clean a CSV dataset with Pandas (remove empty rows, duplicates, fix dates, handle missing values)
 - Filter reports by crop, location, and date range
-- AI classification of each report into: **Pest, Disease, Water, Weather,
-  Nutrient, Other** — plus severity (Low/Moderate/High), keywords, and a
-  short summary
-- Dashboard metric cards: total reports, number of crops, number of
-  locations, most common problem
-- Interactive Plotly charts: reports by crop, reports by location, problem
-  categories
-- **AI Report Analyzer**: paste in a brand-new report and get an instant
-  AI classification
-- **"Ask FarmSense AI" chatbot**: ask natural-language questions about the
-  dataset, answered only from the actual data (no made-up answers)
-- Beginner-friendly error handling everywhere (missing file, empty data,
-  missing API key, API errors, bad AI responses, missing columns, no
-  internet)
+- AI classification of each report into: **Pest, Disease, Water, Weather, Nutrient, Other** — plus severity (Low/Moderate/High), keywords, and a short summary
+- **Sentiment analysis** of each report using the `cardiffnlp/twitter-roberta-base-sentiment-latest` model, shown as a chart (new)
+- **Automatic model fallback**: if Qwen2.5-7B-Instruct fails, the app tries Qwen3-8B, then Llama-3.1-8B-Instruct (new)
+- **Choice of AI provider**: Hugging Face (cloud) or Ollama (runs locally, no token needed) (new)
+- **Disk caching** of AI results (`data/ai_cache.json`), so reports already analyzed aren't sent to the API again (new)
+- **Retry AI analysis** button in the sidebar (new)
+- Dashboard metric cards: total reports, number of crops, number of locations, most common problem
+- Interactive Plotly charts: reports by crop, reports by location, problem categories, and report sentiment
+- **AI Report Analyzer**: paste in a brand-new report and get an instant AI classification
+- **"Ask FarmSense AI" chatbot**: ask natural-language questions about the dataset, answered only from the actual data (no made-up answers)
+- Beginner-friendly error handling everywhere (missing file, empty data, missing API key, API errors, bad AI responses, missing columns, no internet)
+- App still runs without a token: the dataset and charts work, and only the AI features are disabled, with a clear message
 
 ## 3. Dataset Description
 
