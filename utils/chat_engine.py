@@ -174,7 +174,7 @@ def _problem_and_place(sub, scope, f):
     top = [i for i, n in pc.items() if n == top_n]
     lc = sub["location"].value_counts()
     top_locs = [k for k, v in lc.items() if v == lc.max()]
-    where = "across all reports" if scope == "all reports" else f"for {scope}"
+    where = "in the current filter" if scope == "all reports" else f"for {scope}"
 
     names = " / ".join(f"**{n}** · *{t}*" for _, n, t in top)
     L = [f"**Most common problem {where}:** {names} — **{top_n}** of {total} report(s) ({top_n / total:.0%}).",
@@ -241,6 +241,11 @@ def answer_from_data(question, df, last_filters=None):
     res = _answer_impl(question, df, last_filters)
     if res is not None and not CHARTS_ENABLED:
         res["fig"] = None
+    if (res is not None and df is not None and not df.empty and "category" in df.columns
+            and df["category"].isin(NA).all()
+            and ("category" in res.get("filters", {}) or _detect_dim(question.lower()) == "category")
+            and "hasn't run" not in res["text"]):
+        res["text"] += "\n\n*Problem types come from the built-in agronomy knowledge base (matched on report wording), not the AI classifier.*"
     return res
 
 
@@ -249,6 +254,11 @@ def _answer_impl(question, df, last_filters=None):
     if df is None or df.empty:
         return {"text": "There are no reports in the current filter.", "fig": None, "filters": {}}
     df = add_diagnosis(df)
+    if df["category"].isin(NA).all():
+        # AI has not run: the knowledge base already types every report (Pest, Disease, Water...),
+        # so category questions ("which location has the most pest problems?") can still be answered exactly.
+        df = df.copy()
+        df["category"] = df["issue_type"]
     f = _detect_filters(q, df)
     know = bool(re.search(KNOW_WORDS, q)) or bool(match_in_text(q)) and not f
     wants_chart = _has(q, "chart", "graph", "plot", "visual", "diagram")
@@ -320,7 +330,7 @@ def _answer_impl(question, df, last_filters=None):
         total = int(counts.sum())
         table = "\n".join(f"- {k}: **{v}** ({v / total:.0%})" for k, v in counts.items())
         verb = "have" if len(winners.split(", ")) > 1 else "has"
-        where = "across all reports" if scope == "all reports" else f"for {scope}"
+        where = "in the current filter" if scope == "all reports" else f"for {scope}"
         word = "fewest" if asc else "most"
         text = f"**{winners}** {verb} the {word} reports (**{best}** of {total}) {where}.\n\nFull breakdown by {dim}:\n{table}"
         # "...and what are the problems?" -> also name the specific problems / diseases of the winning group
