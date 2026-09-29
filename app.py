@@ -133,6 +133,7 @@ else:
 
 
 if st.sidebar.button("🔄 Retry AI analysis"):
+    st.session_state["run_ai"] = True
     for _k in [k for k in st.session_state if str(k).startswith("ai_failed")]:
         st.session_state.pop(_k)
 
@@ -237,14 +238,27 @@ st.sidebar.markdown("---")
 st.sidebar.header("🔍 Filters")
 
 crop_options = sorted(raw_df["crop"].unique().tolist())
-selected_crops = st.sidebar.multiselect("Crop", crop_options, default=crop_options)
+st.session_state.setdefault("f_crop", crop_options)
+selected_crops = st.sidebar.multiselect("Crop", crop_options, key="f_crop")
 
 location_options = sorted(raw_df["location"].unique().tolist())
-selected_locations = st.sidebar.multiselect("Location", location_options, default=location_options)
+st.session_state.setdefault("f_location", location_options)
+selected_locations = st.sidebar.multiselect("Location", location_options, key="f_location")
 
 min_date = raw_df["date"].min().date()
 max_date = raw_df["date"].max().date()
-date_range = st.sidebar.date_input("Date range", value=(min_date, max_date), min_value=min_date, max_value=max_date)
+st.session_state.setdefault("f_date", (min_date, max_date))
+date_range = st.sidebar.date_input("Date range", min_value=min_date, max_value=max_date, key="f_date")
+
+
+def _reset_filters():
+    """Put every filter back to 'show everything'."""
+    st.session_state["f_crop"] = crop_options
+    st.session_state["f_location"] = location_options
+    st.session_state["f_date"] = (min_date, max_date)
+
+
+st.sidebar.button("↩️ Reset filters", on_click=_reset_filters, help="Show all crops, all locations and the full date range again.")
 
 # Apply the filters chosen in the sidebar
 filtered_df = raw_df[
@@ -265,6 +279,15 @@ st.caption(
     "GenAI-powered dashboard that classifies farmer reports into problem "
     "categories, shows trends, and answers questions about the dataset."
 )
+
+# "Analyze" button: the AI only runs when you click it (saves time and API quota).
+if st.button("🧠 Analyze reports with AI", type="primary",
+             help="Classify every report that has not been analyzed yet (category, severity, sentiment). "
+                  "Results are saved, so each report is only analyzed once."):
+    st.session_state["run_ai"] = True
+    for _k in [k for k in st.session_state if str(k).startswith("ai_failed")]:
+        st.session_state.pop(_k)
+run_ai = st.session_state.get("run_ai", False)
 
 # We only classify reports if we have a working AI client.
 # We NEVER make up fake category/severity values - if the AI is unavailable,
@@ -306,6 +329,9 @@ if client is None:
         "⚠️ Ollama is not reachable - reports will not be classified. " if use_ollama else
         "⚠️ No valid Hugging Face token - reports will not be classified. Add your token (see README.md)."
     )
+elif todo and not run_ai:
+    st.info(f"🧠 **{len(todo)} report wording(s)** have not been analyzed yet. "
+            "Click **Analyze reports with AI** above to classify them (category, severity and sentiment).")
 elif todo:
     tried_errors = {}
     with st.status(f"Analyzing {len(todo)} unique report(s) with AI...", expanded=True) as status:
@@ -373,7 +399,7 @@ if n_unanalyzed:
 # --- Sentiment (cardiffnlp model, with chat models as backup; Hugging Face only) ---
 if client is not None and not use_ollama:
     todo_sent = [r for r in unique_reports if _cache_key(r, SENTIMENT_MODEL) not in ai_cache]
-    if todo_sent and not st.session_state.get("ai_failed_sentiment"):
+    if todo_sent and run_ai and not st.session_state.get("ai_failed_sentiment"):
         with st.spinner("Analyzing sentiment..."):
             labels, sent_err, sent_src = analyze_sentiments(client, todo_sent, fallback_models=MODEL_CHAIN)
         if sent_err:

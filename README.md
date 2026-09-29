@@ -294,3 +294,7 @@ The dataset in `data/farmer_reports.csv` is a **synthetic (computer-generated) s
 **APA citation:**
 
 Conwi, J. P. (2026). *FarmSense AI farmer reports* [Synthetic dataset]. Generated with gen_data.py (random seeds 7 and 11) for CS 315 Activity 3, North Eastern Mindanao State University.
+
+### Buttons
+- **🧠 Analyze reports with AI** (top of the page): runs the AI on every report that has not been analyzed yet. Results are saved, so each report is analyzed once.
+- **↩️ Reset filters** (sidebar): shows all crops, all locations and the full date range again.
