@@ -296,6 +296,7 @@ and respond with ONLY a valid JSON array (no extra text, no markdown) with
 exactly {len(reports)} elements, in the SAME ORDER as the reports below.
 
 Each element must be an object with exactly these keys:
+- "id": the report's number from the list (1, 2, 3, ...)
 - "category": must be exactly one of {CATEGORIES}
 - "severity": must be exactly one of {SEVERITIES}
 - "keywords": a short comma-separated string of important keywords (3-5 words)
@@ -318,12 +319,20 @@ Respond with ONLY the JSON array, containing exactly {len(reports)} elements."""
         if not isinstance(parsed, list):
             raise ValueError("Expected a JSON array from the AI.")
 
+        # Match results by the report "id" so answers can never shift onto the wrong report
+        by_id = {}
+        for pos, it in enumerate(parsed):
+            if isinstance(it, dict):
+                try:
+                    by_id[int(it.get("id", pos + 1))] = it
+                except (TypeError, ValueError):
+                    by_id[pos + 1] = it
         results = []
         for i in range(len(reports)):
-            if i >= len(parsed) or not isinstance(parsed[i], dict):
+            item = by_id.get(i + 1)
+            if item is None:
                 results.append({"error": "The AI did not return a result for this report."})
                 continue
-            item = parsed[i]
             category = item.get("category", "Other")
             if category not in CATEGORIES:
                 category = "Other"
@@ -573,7 +582,7 @@ def build_dataset_summary(df, max_chars: int = 4000) -> str:
     return summary
 
 
-def ask_chatbot(client, question: str, dataset_summary: str, model: str = MODEL_NAME) -> str:
+def ask_chatbot(client, question: str, dataset_summary: str, model: str = MODEL_NAME, history=None) -> str:
     """
     Sends the user's question, together with the summarized dataset, to the
     AI and returns a plain-text answer.
@@ -587,21 +596,27 @@ def ask_chatbot(client, question: str, dataset_summary: str, model: str = MODEL_
     if not question or not question.strip():
         return "Please type a question first."
 
-    prompt = f"""You are FarmSense AI, a helpful assistant that answers questions
-about a dataset of farmer agricultural reports.
+    past = "\n".join(f"- {h[:300]}" for h in (history or [])[-4:])
+    prompt = f"""You are FarmSense AI, an assistant that answers questions about a dataset of farmer reports.
 
-You must answer using ONLY the dataset summary below. Do not invent numbers
-or facts that are not in the summary. If the answer cannot be determined
-from the dataset, say that the information is not available in the dataset.
+RULES (follow strictly):
+1. Use ONLY the DATA below. Never use outside knowledge or guess.
+2. For totals and per-group counts, copy the numbers from the STATISTICS lines. For anything else, count the rows in the table yourself and double-check.
+3. If a value is "Not analyzed" or "—", say it was not analyzed; do not guess it.
+4. If the data cannot answer the question, reply exactly: "That isn't available in the dataset."
+5. Answer in 1-4 short sentences, starting with the direct answer. Mention the numbers you used.
 
-Dataset summary:
+DATA:
 {dataset_summary}
 
-Question: {question}
+Earlier questions in this chat (for context only):
+{past or "(none)"}
 
-Give a short, clear, direct answer."""
+QUESTION: {question}
+
+ANSWER:"""
 
     try:
-        return _call_with_retry(lambda: _generate(client, model, prompt, 0.2))
+        return _call_with_retry(lambda: _generate(client, model, prompt, 0))
     except Exception as e:
         return f"⚠️ Could not get an answer from the AI right now. ({e})"

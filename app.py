@@ -21,6 +21,7 @@ python -m streamlit run app.py
 
 """
 
+import csv
 import os
 
 import pandas as pd
@@ -35,6 +36,7 @@ import utils.ai_analysis as _ai_module
 importlib.reload(_ai_module)
 
 # Our own helper functions live in utils/ai_analysis.py
+from utils.chat_engine import answer_from_data, build_chat_context
 from utils.ai_analysis import (
     get_client,
     analyze_report,
@@ -155,7 +157,10 @@ def load_and_clean_data(path: str):
                        f"Make sure `farmer_reports.csv` is inside the `data/` folder."]
 
     try:
-        df = pd.read_csv(path)
+        with open(path, newline="", encoding="utf-8-sig") as fh:
+            rows = list(csv.reader(fh))
+        # keep only the first 4 fields of every row (ignores stray extra columns)
+        df = pd.DataFrame([r[:4] + [""] * (4 - len(r[:4])) for r in rows[1:]], columns=rows[0][:4])
     except Exception as e:
         return None, [f"❌ Failed to read the CSV file: {e}"]
 
@@ -185,7 +190,7 @@ def load_and_clean_data(path: str):
     # Convert the date column to real datetime values.
     # errors="coerce" turns any unreadable date into NaT (missing) instead
     # of crashing the whole app.
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"].replace("", None), errors="coerce")
 
     # Handle missing values: drop rows where date could not be parsed,
     # since we need valid dates for the date filter and charts.
@@ -387,91 +392,130 @@ analyzed_df["sentiment"] = [ai_cache.get(_cache_key(t, SENTIMENT_MODEL), "—") 
 
 
 # ---------------------------------------------------------------------------
-# 5. DASHBOARD OVERVIEW — METRIC CARDS
+# 5. DASHBOARD — KEY FINDINGS, KPI CARDS, TABS
 # ---------------------------------------------------------------------------
-st.header("📊 Dashboard Overview")
-
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Reports", len(analyzed_df))
-col2.metric("Number of Crops", analyzed_df["crop"].nunique())
-col3.metric("Number of Locations", analyzed_df["location"].nunique())
-
-_analyzed_only = analyzed_df[analyzed_df["category"] != "Not analyzed"]
-most_common = _analyzed_only["category"].mode()
-most_common_label = most_common.iloc[0] if not most_common.empty else "N/A"
-col4.metric("Most Common Problem", most_common_label)
-
-st.markdown("---")
+st.header("📊 Dashboard")
+SEV_COLORS = {"Low": "#43A047", "Moderate": "#FB8C00", "High": "#E53935"}
+SENT_COLORS = {"positive": "#43A047", "neutral": "#9E9E9E", "negative": "#E53935"}
+n_total = len(analyzed_df)
+A = analyzed_df[analyzed_df["category"] != "Not analyzed"]
+ai_ok = not A.empty
 
 
-# ---------------------------------------------------------------------------
-# 6. CHARTS
-# ---------------------------------------------------------------------------
-chart_col1, chart_col2 = st.columns(2)
-
-with chart_col1:
-    st.subheader("🌱 Reports by Crop")
-    crop_counts = analyzed_df["crop"].value_counts().reset_index()
-    crop_counts.columns = ["crop", "count"]
-    fig_crop = px.bar(crop_counts, x="crop", y="count", color="crop", title="Number of Reports per Crop")
-    st.plotly_chart(fig_crop, use_container_width=True)
-
-with chart_col2:
-    st.subheader("📍 Reports by Location")
-    loc_counts = analyzed_df["location"].value_counts().reset_index()
-    loc_counts.columns = ["location", "count"]
-    fig_loc = px.bar(loc_counts, x="location", y="count", color="location", title="Number of Reports per Location")
-    st.plotly_chart(fig_loc, use_container_width=True)
-
-st.subheader("🐛 Problem Categories")
-if (analyzed_df["category"] != "Not analyzed").any():
-    cat_df = analyzed_df[analyzed_df["category"] != "Not analyzed"]
-    cat_counts = cat_df["category"].value_counts().reindex(CATEGORIES).fillna(0).reset_index()
-    cat_counts.columns = ["category", "count"]
-    fig_cat = px.pie(cat_counts, names="category", values="count", title="Reports by Problem Category")
-    st.plotly_chart(fig_cat, use_container_width=True)
-else:
-    st.info("Problem category chart is unavailable because AI analysis has not run (no API key).")
-
-st.subheader("😊 Report Sentiment")
-_sent = analyzed_df[analyzed_df["sentiment"] != "—"]
-if not _sent.empty:
-    sent_counts = _sent["sentiment"].value_counts().reset_index()
-    sent_counts.columns = ["sentiment", "count"]
-    fig_sent = px.bar(sent_counts, x="sentiment", y="count", color="sentiment", title="Reports by Sentiment")
-    st.plotly_chart(fig_sent, use_container_width=True)
-else:
-    st.info("Sentiment chart is unavailable (needs the Hugging Face provider and a working token).")
-
-st.markdown("---")
+def pct(x, d):
+    return f"{x / d:.0%}" if d else "—"
 
 
-# ---------------------------------------------------------------------------
-# 7. FILTERED DATA TABLE
-# ---------------------------------------------------------------------------
-st.header("📋 Farmer Reports")
-with st.expander("View cleaned & filtered dataset", expanded=True):
-    st.dataframe(
-        analyzed_df[["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "sentiment"]],
-        use_container_width=True,
-        hide_index=True,
-    )
+crop_vc, loc_vc = analyzed_df["crop"].value_counts(), analyzed_df["location"].value_counts()
+n_high = int((A["severity"] == "High").sum()) if ai_ok else 0
+top_cat = A["category"].value_counts().idxmax() if ai_ok else "N/A"
+n_neg = int((analyzed_df["sentiment"] == "negative").sum())
+weekly = analyzed_df.set_index("date").resample("W").size()
 
-with st.expander("📚 Dataset source and citation"):
-    st.markdown(
-        "**Source:** This is a *synthetic* (computer-generated) sample dataset. "
-        "It does not contain real farmer reports. It was created by the author for "
-        "CS 315 Activity 3 using the script `gen_data.py` (random seed 7), and "
-        "stored in `data/farmer_reports.csv`. The generator deliberately adds a few "
-        "messy rows (an empty report, a duplicate, a missing date, extra spaces) so "
-        "the data-cleaning step has something to fix."
-    )
-    st.markdown("**Citation (APA):**")
-    st.markdown(
-        "Conwi, J. P. (2026). *FarmSense AI farmer reports* [Synthetic dataset]. "
-        "Generated with gen_data.py (random seed 7) for CS 315 Activity 3, "
-        "North Eastern Mindanao State University."
-    )
+findings = [
+    f"📅 **{n_total} reports** from **{analyzed_df['date'].min():%b %d}** to **{analyzed_df['date'].max():%b %d, %Y}**.",
+    f"🌱 **{crop_vc.index[0]}** is reported most often ({crop_vc.iloc[0]} reports, {pct(crop_vc.iloc[0], n_total)}).",
+    f"📍 **{loc_vc.index[0]}** is the busiest location ({loc_vc.iloc[0]} reports).",
+    f"📈 The busiest week ended **{weekly.idxmax():%b %d}** with {int(weekly.max())} reports.",
+]
+if ai_ok:
+    worst = A[A["severity"] == "High"]["crop"].value_counts()
+    findings.insert(2, f"🐛 The most common problem is **{top_cat}** ({pct(int((A['category'] == top_cat).sum()), len(A))} of analyzed reports).")
+    findings.append(f"🚨 **{n_high} high-severity report(s)**" + (f" — most for **{worst.index[0]}** ({worst.iloc[0]})." if n_high else "."))
+st.info("**Key findings (updates with your filters)**\n\n" + "\n\n".join(findings))
+
+k1, k2, k3, k4, k5 = st.columns(5)
+k1.metric("Total Reports", n_total, help="Cleaned reports after your sidebar filters.")
+k2.metric("High Severity", n_high if ai_ok else "N/A", pct(n_high, len(A)) + " of analyzed" if ai_ok else None, delta_color="off",
+          help="Reports the AI rated High: they need attention first.")
+k3.metric("Top Problem", top_cat, help="The most frequent problem category.")
+k4.metric("Hotspot Location", loc_vc.index[0], f"{loc_vc.iloc[0]} reports", delta_color="off", help="Location with the most reports.")
+k5.metric("Negative Tone", pct(n_neg, n_total) if (analyzed_df["sentiment"] != "—").any() else "N/A",
+          help="Share of reports whose wording sounds negative/urgent.")
+if not ai_ok:
+    st.warning("AI classification is not available yet, so category and severity charts are hidden. Crop, location and trend charts still work.")
+
+t_over, t_trend, t_prob, t_prio, t_data = st.tabs(["📊 Overview", "📈 Trends", "🐛 Problems & Severity", "🚨 Priority Reports", "📋 Data"])
+
+with t_over:
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("🌱 Reports by Crop")
+        st.caption("Taller bar = more reports about that crop.")
+        d = crop_vc.reset_index(); d.columns = ["crop", "reports"]
+        st.plotly_chart(px.bar(d, x="crop", y="reports", color="crop", text="reports").update_layout(showlegend=False), use_container_width=True)
+    with c2:
+        st.subheader("📍 Reports by Location")
+        st.caption("Longer bar = more reports from that town.")
+        d = loc_vc.reset_index(); d.columns = ["location", "reports"]
+        st.plotly_chart(px.bar(d.sort_values("reports"), y="location", x="reports", orientation="h", color="location", text="reports").update_layout(showlegend=False), use_container_width=True)
+    c3, c4 = st.columns(2)
+    with c3:
+        st.subheader("🐛 Problem Categories")
+        st.caption("Each slice is a type of problem; bigger slice = more common.")
+        if ai_ok:
+            st.plotly_chart(px.pie(A["category"].value_counts().reset_index(), names="category", values="count", hole=0.45), use_container_width=True)
+        else:
+            st.info("Needs AI analysis.")
+    with c4:
+        st.subheader("😊 Report Sentiment")
+        st.caption("How the farmer's wording sounds: positive, neutral or negative.")
+        S = analyzed_df[analyzed_df["sentiment"] != "—"]
+        if not S.empty:
+            d = S["sentiment"].value_counts().reset_index()
+            st.plotly_chart(px.bar(d, x="sentiment", y="count", color="sentiment", color_discrete_map=SENT_COLORS, text="count").update_layout(showlegend=False), use_container_width=True)
+        else:
+            st.info("Needs the Hugging Face provider and a working token.")
+
+with t_trend:
+    st.subheader("📈 Reports per Week")
+    st.caption("Shows when problems spike. Rising line = more farmers reporting problems.")
+    w = weekly.reset_index(); w.columns = ["week", "reports"]
+    st.plotly_chart(px.line(w, x="week", y="reports", markers=True), use_container_width=True)
+    if ai_ok:
+        st.subheader("Weekly Reports by Problem Category")
+        st.caption("Colors show which problem types drive each week's total.")
+        wc = A.groupby([pd.Grouper(key="date", freq="W"), "category"]).size().reset_index(name="reports")
+        st.plotly_chart(px.bar(wc, x="date", y="reports", color="category"), use_container_width=True)
+
+with t_prob:
+    if ai_ok:
+        st.subheader("Which crops suffer from which problems?")
+        st.caption("Darker cell = more reports. Read across a crop's row to see its main problem.")
+        ct = pd.crosstab(A["crop"], A["category"])
+        st.plotly_chart(px.imshow(ct, text_auto=True, aspect="auto", color_continuous_scale="YlOrRd"), use_container_width=True)
+        st.subheader("Where are the problems?")
+        st.caption("Same idea by location: which town has which type of problem.")
+        cl = pd.crosstab(A["location"], A["category"])
+        st.plotly_chart(px.imshow(cl, text_auto=True, aspect="auto", color_continuous_scale="YlOrRd"), use_container_width=True)
+        st.subheader("Severity by Crop")
+        st.caption("Red = High severity (act first), orange = Moderate, green = Low.")
+        sv = A.groupby(["crop", "severity"]).size().reset_index(name="reports")
+        st.plotly_chart(px.bar(sv, x="crop", y="reports", color="severity", color_discrete_map=SEV_COLORS,
+                               category_orders={"severity": ["Low", "Moderate", "High"]}), use_container_width=True)
+    else:
+        st.info("These charts need AI analysis (category and severity).")
+
+with t_prio:
+    st.subheader("🚨 High-Severity Reports (newest first)")
+    st.caption("These reports were rated High by the AI. Start here.")
+    hi = A[A["severity"] == "High"].sort_values("date", ascending=False) if ai_ok else A
+    if hi.empty:
+        st.success("No high-severity reports in the current filter." if ai_ok else "Needs AI analysis.")
+    else:
+        st.dataframe(hi[["date", "location", "crop", "category", "summary", "report"]], use_container_width=True, hide_index=True)
+
+with t_data:
+    st.subheader("📋 Cleaned & Filtered Reports")
+    cols = ["date", "location", "crop", "report", "category", "severity", "keywords", "summary", "sentiment"]
+    st.dataframe(analyzed_df[cols], use_container_width=True, hide_index=True)
+    st.download_button("⬇️ Download as CSV", analyzed_df[cols].to_csv(index=False).encode("utf-8"), "farmsense_reports.csv", "text/csv")
+    with st.expander("📚 Dataset source and citation"):
+        st.markdown(
+            "**Source:** *synthetic* (computer-generated) sample data, not real farmer reports, created with `gen_data.py` "
+            "(random seed 7) for CS 315 Activity 3.\n\n**APA:** Conwi, J. P. (2026). *FarmSense AI farmer reports* "
+            "[Synthetic dataset]. Generated with gen_data.py (random seed 7) for CS 315 Activity 3, North Eastern Mindanao State University."
+        )
 
 st.markdown("---")
 
@@ -527,40 +571,48 @@ st.markdown("---")
 # ---------------------------------------------------------------------------
 st.header("💬 Ask FarmSense AI")
 st.caption(
-    "Ask a question about the filtered dataset above, e.g. "
-    "\"Which crop has the most reports?\" or \"Which location has the most pest problems?\""
+    "Ask about the filtered data above. Counts, rankings and lists are calculated **exactly** with Pandas; "
+    "the AI reads the real report rows for everything else, and says so when the data can't answer."
 )
+SUGGESTED = ["Which crop has the most reports?", "Which location has the most pest problems?",
+             "How many high severity reports are there?", "What problems affect rice?", "Show the latest urgent reports"]
+for _c, _q in zip(st.columns(len(SUGGESTED)), SUGGESTED):
+    if _c.button(_q, use_container_width=True):
+        st.session_state["pending_q"] = _q
 
-# We build a short SUMMARY of the dataset (not the full raw data) to send to
-# the AI, so we don't waste tokens / API cost. See build_dataset_summary().
-dataset_summary = build_dataset_summary(analyzed_df)
-
-with st.expander("See what data summary is sent to the AI (for transparency)"):
-    st.code(dataset_summary)
+chat_context = build_chat_context(analyzed_df)
+with st.expander("See the exact data the chatbot uses (for transparency)"):
+    st.code(chat_context)
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-
+if st.session_state.chat_history and st.button("🗑️ Clear chat"):
+    st.session_state.chat_history = []
+    st.rerun()
 for role, message in st.session_state.chat_history:
     with st.chat_message(role):
-        st.write(message)
+        st.markdown(message)
 
-user_question = st.chat_input("Ask a question about the farmer reports...")
-
+user_question = st.chat_input("Ask a question about the farmer reports...") or st.session_state.pop("pending_q", None)
 if user_question:
     st.session_state.chat_history.append(("user", user_question))
     with st.chat_message("user"):
-        st.write(user_question)
-
+        st.markdown(user_question)
     with st.chat_message("assistant"):
-        if client is None:
-            answer = "⚠️ Chatbot is unavailable because no valid Hugging Face token was found. See README.md."
+        exact = answer_from_data(user_question, analyzed_df)
+        if exact:
+            answer, source = exact, "🧮 Calculated directly from the data (exact)"
+        elif client is None:
+            answer, source = "⚠️ This question needs the AI, but no AI provider is available. Add your token (see README.md).", ""
         else:
-            with st.spinner("Thinking..."):
-                answer = _with_fallback(lambda m: ask_chatbot(client, user_question, dataset_summary, model=m))
-        st.write(answer)
-
-    st.session_state.chat_history.append(("assistant", answer))
+            past = [m for r, m in st.session_state.chat_history[-5:-1]]
+            with st.spinner("Reading the reports..."):
+                answer = _with_fallback(lambda m: ask_chatbot(client, user_question, chat_context, model=m, history=past))
+            source = "🤖 AI answer based on the report rows above"
+        st.markdown(answer)
+        if source:
+            st.caption(source)
+    st.session_state.chat_history.append(("assistant", answer + (f"\n\n*{source}*" if source else "")))
 
 st.markdown("---")
 st.caption("Built for CS 315 – Application Development and Emerging Technologies · Activity 3 · FarmSense AI")
