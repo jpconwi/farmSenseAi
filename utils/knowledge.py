@@ -84,7 +84,7 @@ KB = [
        "Prop or re-hill lightly-leaning plants and harvest badly lodged plants early.",
        "Hill up soil around the base, avoid excess nitrogen, plant shorter or sturdier varieties, use windbreaks."),
     _e("black_sigatoka", "Black Sigatoka (banana leaf spot)", "Disease",
-       r"dark spots", ["Banana"],
+       r"dark (spots|streaks)", ["Banana"],
        "Fungus *Pseudocercospora fijiensis*.",
        "Small dark streaks that grow into dark lesions with a yellow halo; leaves dry out early and yield drops.",
        "Warm, humid, rainy weather; spores spread by wind and rain; crowded plants and poor drainage.",
@@ -181,6 +181,34 @@ KB = [
        "Not enough rain or irrigation.",
        "Irrigate right away and mulch to reduce evaporation.",
        "Water on schedule, drought-tolerant varieties."),
+    _e("banana_leaf_drop", "Panama disease (Fusarium wilt) or Sigatoka — possible", "Disease",
+       r"leaves?\b.*\b(falling|fall|drooping|droop|hanging|collaps\w*|breaking|dropping)|\b(falling|drooping|collapsing)\b.*leaves?", ["Banana"],
+       "Possible causes: Panama disease (soil fungus *Fusarium oxysporum* f. sp. *cubense*), Black Sigatoka leaf spot, or banana bunchy top virus.",
+       "Older leaves turn yellow, droop and hang down around the stem like a skirt, then dry and fall; in Panama disease the stem may split near the base and the cut stem shows reddish-brown streaks.",
+       "Panama disease lives in the soil for many years and spreads through infected suckers, tools, soil and water. Black Sigatoka thrives in warm, humid, rainy weather.",
+       "Do not replant suckers from affected plants. Remove and destroy badly affected plants (do not compost), cut off dying leaves, keep tools and boots clean, and ask your municipal agriculturist / DA technician to inspect the field. Panama disease has no cure.",
+       "Use clean, certified planting material, improve drainage, avoid moving soil or water from affected areas, disinfect tools, and consider resistant varieties."),
+    _e("banana_yellow_edges", "Banana leaf yellowing (needs field check)", "Other",
+       r"yellow(ing)?.*edges|edges.*yellow", ["Banana"],
+       "Possible causes: potassium deficiency, early Panama disease, or water stress.",
+       "Leaf edges turn yellow then brown and dry, usually starting on the older leaves.",
+       "Low potassium in the soil is the most common cause; yellowing that spreads plant by plant may be a soil disease.",
+       "Apply balanced fertilizer with potassium (ideally after a soil test). If plants keep yellowing and the stem splits, ask a technician to check for Panama disease.",
+       "Regular fertilizing with potassium, compost or mulch, good drainage and clean planting material."),
+    _e("banana_insects", "Leaf-feeding insects (banana skipper / caterpillars)", "Pest",
+       r"insects?.*(feeding|eating)|(feeding|eating).*leaves", ["Banana"],
+       "Leaf-feeding insects such as the banana skipper caterpillar, or beetles.",
+       "Chewed or rolled young leaves, ragged leaf edges and droppings on the leaves.",
+       "Warm weather, weedy fields and lack of natural enemies allow numbers to build up.",
+       "Scout the field, pick off and destroy caterpillars, cut heavily damaged leaves, and use a registered or biological insecticide (e.g., Bt) only if damage is heavy.",
+       "Keep the field clean and weed-free, protect natural enemies, and inspect young leaves every week."),
+    _e("banana_weak", "Weak stems and poor growth (needs field check)", "Other",
+       r"weak stems?|poor growth", ["Banana"],
+       "Possible causes: banana weevil borer, nutrient shortage, or root damage.",
+       "Thin or soft pseudostems, slow growth and small bunches; weevil damage shows tunnels at the base of the plant.",
+       "Weevil larvae boring in the corm, poor or depleted soil, or too little fertilizer or water.",
+       "Dig around the base to check for weevil tunnels, remove and destroy infested corms, fertilize, and ask a technician to inspect the field.",
+       "Use clean suckers, remove old stumps and trash near plants, and fertilize regularly."),
     _e("unspecified", "Unspecified crop health problem", "Other",
        r"unhealthy", None,
        "Not enough detail in the report.",
@@ -196,14 +224,72 @@ FALLBACK = dict(key="unclassified", name="Unclassified problem", type="Other", c
 _BY_KEY = {e["key"]: e for e in KB}
 
 
-def diagnose(crop, text):
-    """Return the best-matching knowledge entry for one report."""
+GENERIC = {
+    "Disease": ("Possible plant disease (needs field check)",
+                "A disease is suspected from the wording, but the report does not have enough detail to name it.",
+                "Leaf spots, yellowing, wilting, rotting or leaves that dry and fall.",
+                "Fungi, bacteria or viruses, usually spread by wet weather, infected soil, tools or planting material.",
+                "Cut off and remove affected leaves or plants, avoid spraying blindly, and ask a technician to inspect the field and confirm the disease.",
+                "Use clean planting material, keep good drainage and spacing, and clean tools."),
+    "Pest": ("Possible pest damage (needs field check)",
+             "An insect or animal pest is suspected from the wording, but the report does not have enough detail to name it.",
+             "Chewed leaves, holes, insects on the plant, or damaged stems.",
+             "Warm weather, weedy fields and lack of natural enemies.",
+             "Look under the leaves and at the base of the plant, remove the pests you find, and ask a technician before spraying.",
+             "Scout weekly, keep the field clean and protect natural enemies."),
+    "Water": ("Possible water problem (needs field check)",
+              "Too little or too much water is suspected from the wording.",
+              "Wilting, leaf rolling, or yellowing with soggy soil.",
+              "Dry spell, broken irrigation, or poor drainage.",
+              "Check soil moisture, irrigate or drain the field, and mulch.",
+              "Plan irrigation and drainage, use mulch."),
+    "Weather": ("Possible weather damage (needs field check)",
+                "Damage from rain, wind or heat is suspected from the wording.",
+                "Broken, toppled or waterlogged plants.",
+                "Typhoon, heavy rain, strong wind or heat.",
+                "Remove broken parts, prop up leaning plants and drain standing water.",
+                "Use windbreaks, drainage and staking."),
+    "Nutrient": ("Possible nutrient problem (needs field check)",
+                 "A shortage of nutrients is suspected from the wording.",
+                 "Pale or yellow leaves and slow growth.",
+                 "Poor soil or too little fertilizer.",
+                 "Apply balanced fertilizer or compost, ideally after a soil test.",
+                 "Test the soil and fertilize regularly."),
+}
+_CROP_WORDS = {"Banana": r"\bbanana", "Rice": r"\brice\b|\bpalay", "Corn": r"\bcorn\b|\bmais",
+               "Coconut": r"\bcoconut|\bniyog", "Vegetables": r"\bvegetable"}
+
+
+def _infer_crop(text):
+    """Guess the crop from words in the report (used when the user did not pick one)."""
+    for crop, pat in _CROP_WORDS.items():
+        if re.search(pat, text, re.I):
+            return crop
+    return None
+
+
+def _generic(category):
+    name, agent, symptoms, causes, treatment, prevention = GENERIC[category]
+    return dict(key=f"generic_{category.lower()}", name=name, type=category, crops=None, agent=agent,
+                symptoms=symptoms, causes=causes, treatment=treatment, prevention=prevention)
+
+
+def diagnose(crop, text, category=None):
+    """Return the best-matching knowledge entry for one report.
+
+    crop      : crop name, or None (then it is guessed from the text)
+    category  : optional AI category (Disease, Pest...). If no specific problem matches,
+                a general entry for that category is returned so the two never contradict.
+    """
     t = str(text or "")
+    crop = crop or _infer_crop(t)
     for e in KB:
         if e["crops"] and crop not in e["crops"]:
             continue
         if e["pattern"].search(t):
             return e
+    if category in GENERIC:
+        return _generic(category)
     return FALLBACK
 
 
@@ -231,4 +317,6 @@ def add_diagnosis(df):
 
 
 def entry_by_key(key):
+    if str(key).startswith("generic_") and str(key)[8:].title() in GENERIC:
+        return _generic(str(key)[8:].title())
     return _BY_KEY.get(key, FALLBACK)

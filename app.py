@@ -457,6 +457,17 @@ with t_over:
         st.caption("Each slice is a type of problem; bigger slice = more common.")
         if ai_ok:
             st.plotly_chart(px.pie(A["category"].value_counts().reset_index(), names="category", values="count", hole=0.45), use_container_width=True)
+            with st.expander("📖 What does this chart mean?"):
+                st.markdown(
+                    "This donut chart groups every farmer report by the **type of problem** the AI found. "
+                    "The percentage on a slice is that type's share of all reports shown.\n\n"
+                    "- **Disease**: illness caused by fungi, bacteria or viruses (e.g. leaf spot, wilt, bunchy top).\n"
+                    "- **Pest**: insects or animals that damage the crop (e.g. aphids, worms, rats, beetles).\n"
+                    "- **Nutrient**: the plant lacks food in the soil (e.g. pale leaves, slow growth, little fertilizer).\n"
+                    "- **Weather**: damage from typhoon, strong wind or heavy rain.\n"
+                    "- **Water**: too little water (drought) or too much water (poor drainage).\n"
+                    "- **Other**: reports that do not clearly fit the types above.\n\n"
+                    "**How to use it:** the biggest slice is the problem type to focus on first.")
         else:
             st.info("Needs AI analysis.")
     with c4:
@@ -466,6 +477,15 @@ with t_over:
         if not S.empty:
             d = S["sentiment"].value_counts().reset_index()
             st.plotly_chart(px.bar(d, x="sentiment", y="count", color="sentiment", color_discrete_map=SENT_COLORS, text="count").update_layout(showlegend=False), use_container_width=True)
+            with st.expander("📖 What does this chart mean?"):
+                st.markdown(
+                    "**Sentiment** is the *tone* of the farmer's words, not how bad the problem is. "
+                    "Each bar counts how many reports have that tone (**count**).\n\n"
+                    "- **Negative**: the farmer describes damage, loss or worry (e.g. \"plants are dying\").\n"
+                    "- **Neutral**: a plain description with no strong feeling (e.g. \"aphids are on the leaves\").\n"
+                    "- **Positive**: good news such as recovery or a good harvest.\n\n"
+                    "**How to use it:** a tall *negative* bar means many farmers are worried or urgent. "
+                    "Reports are usually negative or neutral because farmers mostly write when something goes wrong.")
         else:
             st.info("Needs the Hugging Face provider and a working token.")
 
@@ -495,6 +515,10 @@ with t_prob:
         sv = A.groupby(["crop", "severity"]).size().reset_index(name="reports")
         st.plotly_chart(px.bar(sv, x="crop", y="reports", color="severity", color_discrete_map=SEV_COLORS,
                                category_orders={"severity": ["Low", "Moderate", "High"]}), use_container_width=True)
+        with st.expander("📖 What does severity mean?"):
+            st.markdown("**Severity** is how serious the problem sounds, rated by the AI from the report: "
+                        "**High** = act first (crop loss is likely or spreading), "
+                        "**Moderate** = needs attention soon, **Low** = minor or early stage.")
     else:
         st.info("These charts need AI analysis (category and severity).")
 
@@ -594,7 +618,7 @@ if st.button("🔎 Analyze Report"):
             r_col2.metric("Severity", result["severity"])
             r_col3.metric("Keywords", result["keywords"] or "—")
             st.markdown(f"**Summary:** {result['summary']}")
-            _dx = diagnose(new_crop if new_crop != "(not sure)" else None, new_report)
+            _dx = diagnose(new_crop if new_crop != "(not sure)" else None, new_report, category=result["category"])
             st.markdown(f"#### 🩺 Likely problem: {_dx['name']}  ·  *{_dx['type']}*")
             st.markdown(f"**What it is:** {_dx['agent']}\n\n**Symptoms:** {_dx['symptoms']}\n\n**Causes:** {_dx['causes']}\n\n"
                         f"**What to do now:** {_dx['treatment']}\n\n**Prevention:** {_dx['prevention']}")

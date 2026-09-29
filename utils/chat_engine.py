@@ -152,6 +152,36 @@ def _entry_block(e, sub=None):
     return "\n".join(L)
 
 
+def _problem_and_place(sub, scope, f):
+    """Answer 'most common problem + which location reports most' together, always naming the problem."""
+    total = len(sub)
+    unknown = sub["issue_key"].isin(["unclassified", "unspecified"])
+    known = sub[~unknown]
+    base = known if len(known) else sub
+    pc = base.groupby(["issue_key", "likely_issue", "issue_type"]).size().sort_values(ascending=False)
+    top_n = int(pc.iloc[0])
+    top = [i for i, n in pc.items() if n == top_n]
+    lc = sub["location"].value_counts()
+    top_locs = [k for k, v in lc.items() if v == lc.max()]
+    where = "across all reports" if scope == "all reports" else f"for {scope}"
+
+    names = " / ".join(f"**{n}** · *{t}*" for _, n, t in top)
+    L = [f"**Most common problem {where}:** {names} — **{top_n}** of {total} report(s) ({top_n / total:.0%}).",
+         f"**Location with the most reports:** **{', '.join(top_locs)}** (**{int(lc.max())}** of {total})."]
+    for key, _, _ in top[:1]:
+        at = sub[sub["issue_key"] == key]["location"].value_counts()
+        L.append(f"**{pc.index[0][1]}** is reported most in **{', '.join(k for k, v in at.items() if v == at.max())}** "
+                 f"({int(at.max())} of {top_n}).")
+    L.append("\n**Problems reported:**\n" + "\n".join(
+        f"- {n} *({t})*: **{c}** ({c / total:.0%})" for (_, n, t), c in pc.items()))
+    if unknown.any():
+        L.append(f"- Not enough detail to name the problem: **{int(unknown.sum())}** ({unknown.sum() / total:.0%})")
+    L.append("\n**Full breakdown by location:**\n" + "\n".join(f"- {k}: **{v}** ({v / total:.0%})" for k, v in lc.items()))
+    L.append("\n" + _entry_block(entry_by_key(top[0][0]), sub[sub["issue_key"] == top[0][0]]))
+    return {"text": "\n".join(L) + "\n\n" + DISCLAIMER,
+            "fig": _issue_chart(sub, f"Problems identified · {scope}"), "filters": f}
+
+
 def _knowledge_answer(q, df, f, kt, all_items):
     sub = df
     for k in ("crop", "location", "severity", "sentiment"):
@@ -244,6 +274,11 @@ def _answer_impl(question, df, last_filters=None):
     scope = _describe({k: v for k, v in f.items() if k != dim})
     if sub.empty:
         return {"text": f"No reports match **{scope}** in the current filter.", "fig": None, "filters": f}
+
+    # ---- "most common problem AND which location reports most" (must name the problem)
+    if (_has(q, "problem", "issue", "disease", "pest") and _has(q, "location", "town", "place", "area", "barangay", "where")
+            and "location" not in f and _has(q, "most", "common", "top", "highest", "many")):
+        return _problem_and_place(sub, scope, f)
 
     # ---- trend over time
     if _has(q, "trend", "over time", "weekly", "per week", "timeline", "by week", "peak", "when"):
