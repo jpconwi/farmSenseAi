@@ -295,7 +295,9 @@ run_ai = st.session_state.get("run_ai", False)
 analyzed_df = filtered_df.copy()
 
 if filtered_df.empty:
-    st.warning("No reports match the current filters. Try adjusting the sidebar filters.")
+    st.warning("No reports match the current filters (crop, location and date range together). "
+               "Widen the filters in the sidebar, or click the button below to show everything.")
+    st.button("↩️ Reset filters", on_click=_reset_filters, key="reset_main")
     st.stop()
 
 # SPEED DESIGN
