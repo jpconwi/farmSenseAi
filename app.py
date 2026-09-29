@@ -1,22 +1,5 @@
 """
-app.py
-------
-🌾 FarmSense AI — Farmer Report Analyzer
-
-This is the main Streamlit application file.
-It is organized into clearly labeled sections so a beginner can follow along:
-
-    1.  Page setup
-    2.  Choose AI provider (Hugging Face or Ollama) + create client
-    3.  Load and clean the dataset (Pandas)
-    4.  Sidebar filters
-    5.  Dashboard overview (metric cards)
-    6.  Charts (Reports by Crop / Location / Category)
-    7.  Filtered data table
-    8.  AI Report Analyzer (analyze a NEW report typed by the user)
-    9.  Dataset chatbot ("Ask FarmSense AI")
-
-Run this file with:  streamlit run app.py
+python -m streamlit run app.py
 """
 
 import os
