@@ -36,8 +36,8 @@ import utils.ai_analysis as _ai_module
 importlib.reload(_ai_module)
 
 # Our own helper functions live in utils/ai_analysis.py
-from utils.chat_engine import answer_from_data, build_chat_context
-from utils.knowledge import add_diagnosis, diagnose, entry_by_key, KB, TYPE_COLORS, DISCLAIMER
+from utils.chat_engine import answer_from_data, build_chat_context, ranked_inline
+from utils.knowledge import add_diagnosis, diagnose, entry_by_key, general_guidance, _infer_crop, KB, TYPE_COLORS, DISCLAIMER
 from utils.ai_analysis import (
     get_client,
     analyze_report,
@@ -420,6 +420,13 @@ if client is not None and not use_ollama:
 analyzed_df["sentiment"] = [ai_cache.get(_cache_key(t, SENTIMENT_MODEL), "—") for t in analyzed_df["report"]]
 analyzed_df = add_diagnosis(analyzed_df)  # specific likely disease/pest for each report (knowledge base)
 
+# Reports the AI has not classified still get a problem TYPE (Pest, Disease, Water...) from the built-in
+# agronomy knowledge base (matched on the report wording), so the dashboard works without the AI.
+# Severity is never guessed: it stays "—" until the AI has rated the report.
+_kb_rows = analyzed_df["category"] == "Not analyzed"
+kb_used = bool(_kb_rows.any())
+analyzed_df.loc[_kb_rows, "category"] = analyzed_df.loc[_kb_rows, "issue_type"]
+
 
 # ---------------------------------------------------------------------------
 # 5. DASHBOARD — KEY FINDINGS, KPI CARDS, TABS
@@ -429,7 +436,9 @@ SEV_COLORS = {"Low": "#43A047", "Moderate": "#FB8C00", "High": "#E53935"}
 SENT_COLORS = {"positive": "#43A047", "neutral": "#9E9E9E", "negative": "#E53935"}
 n_total = len(analyzed_df)
 A = analyzed_df[analyzed_df["category"] != "Not analyzed"]
-ai_ok = not A.empty
+ai_ok = not A.empty                                      # problem types available (AI or knowledge base)
+S_ai = analyzed_df[analyzed_df["severity"] != "—"]       # reports the AI has rated
+sev_ok = not S_ai.empty                                  # severity is AI-only, never guessed
 
 
 def pct(x, d):
@@ -437,33 +446,38 @@ def pct(x, d):
 
 
 crop_vc, loc_vc = analyzed_df["crop"].value_counts(), analyzed_df["location"].value_counts()
-n_high = int((A["severity"] == "High").sum()) if ai_ok else 0
+n_high = int((S_ai["severity"] == "High").sum()) if sev_ok else 0
 top_cat = A["category"].value_counts().idxmax() if ai_ok else "N/A"
 n_neg = int((analyzed_df["sentiment"] == "negative").sum())
 weekly = analyzed_df.set_index("date").resample("W").size()
 
 findings = [
     f"📅 **{n_total} reports** from **{analyzed_df['date'].min():%b %d}** to **{analyzed_df['date'].max():%b %d, %Y}**.",
-    f"🌱 **{crop_vc.index[0]}** is reported most often ({crop_vc.iloc[0]} reports, {pct(crop_vc.iloc[0], n_total)}).",
-    f"📍 **{loc_vc.index[0]}** is the busiest location ({loc_vc.iloc[0]} reports).",
+    (f"🌱 **{crop_vc.index[0]}** is the only crop in this filter ({n_total} reports)." if len(crop_vc) == 1 else
+     f"🌱 Crops ranked: {ranked_inline(analyzed_df['crop'])}."),
+    *[f"📍 Locations for **{c}**: {ranked_inline(analyzed_df[analyzed_df['crop'] == c]['location'])}." for c in crop_vc.index],
     f"📈 The busiest week ended **{weekly.idxmax():%b %d}** with {int(weekly.max())} reports.",
 ]
 if ai_ok:
-    worst = A[A["severity"] == "High"]["crop"].value_counts()
-    findings.insert(2, f"🐛 The most common problem is **{top_cat}** ({pct(int((A['category'] == top_cat).sum()), len(A))} of analyzed reports).")
+    findings.insert(2, f"🐛 The most common problem type is **{top_cat}** ({pct(int((A['category'] == top_cat).sum()), len(A))} of reports).")
+if sev_ok:
+    worst = S_ai[S_ai["severity"] == "High"]["crop"].value_counts()
     findings.append(f"🚨 **{n_high} high-severity report(s)**" + (f" — most for **{worst.index[0]}** ({worst.iloc[0]})." if n_high else "."))
 st.info("**Key findings (updates with your filters)**\n\n" + "\n\n".join(findings))
 
 k1, k2, k3, k4, k5 = st.columns(5)
 k1.metric("Total Reports", n_total, help="Cleaned reports after your sidebar filters.")
-k2.metric("High Severity", n_high if ai_ok else "N/A", pct(n_high, len(A)) + " of analyzed" if ai_ok else None, delta_color="off",
+k2.metric("High Severity", n_high if sev_ok else "N/A", pct(n_high, len(S_ai)) + " of analyzed" if sev_ok else None, delta_color="off",
           help="Reports the AI rated High: they need attention first.")
-k3.metric("Top Problem", top_cat, help="The most frequent problem category.")
+k3.metric("Top Problem", top_cat, help="The most frequent problem type (from the AI, or from the built-in agronomy guide when the AI has not run).")
 k4.metric("Hotspot Location", loc_vc.index[0], f"{loc_vc.iloc[0]} reports", delta_color="off", help="Location with the most reports.")
 k5.metric("Negative Tone", pct(n_neg, n_total) if (analyzed_df["sentiment"] != "—").any() else "N/A",
           help="Share of reports whose wording sounds negative/urgent.")
-if not ai_ok:
-    st.warning("AI classification is not available yet, so category and severity charts are hidden. Crop, location and trend charts still work.")
+if kb_used:
+    st.info("ℹ️ Problem types (Pest, Disease, Water...) come from the built-in agronomy guide, matched on the report wording"
+            + (" (AI has not classified all reports yet)." if sev_ok else " (the AI has not run yet)."))
+if not sev_ok:
+    st.warning("Severity needs the AI. Click **🧠 Analyze reports with AI** at the top (Ollama must be running) to rate each report Low / Moderate / High.")
 
 t_over, t_trend, t_prob, t_dx, t_prio, t_data = st.tabs(["📊 Overview", "📈 Trends", "🐛 Problems & Severity", "🩺 Diseases & Pests", "🚨 Priority Reports", "📋 Data"])
 
@@ -487,7 +501,7 @@ with t_over:
             st.plotly_chart(px.pie(A["category"].value_counts().reset_index(), names="category", values="count", hole=0.45), use_container_width=True)
             with st.expander("📖 What does this chart mean?"):
                 st.markdown(
-                    "This donut chart groups every farmer report by the **type of problem** the AI found. "
+                    "This donut chart groups every farmer report by the **type of problem** found in its wording (AI, or the built-in agronomy guide). "
                     "The percentage on a slice is that type's share of all reports shown.\n\n"
                     "- **Disease**: illness caused by fungi, bacteria or viruses (e.g. leaf spot, wilt, bunchy top).\n"
                     "- **Pest**: insects or animals that damage the crop (e.g. aphids, worms, rats, beetles).\n"
@@ -540,15 +554,18 @@ with t_prob:
         st.plotly_chart(px.imshow(cl, text_auto=True, aspect="auto", color_continuous_scale="YlOrRd"), use_container_width=True)
         st.subheader("Severity by Crop")
         st.caption("Red = High severity (act first), orange = Moderate, green = Low.")
-        sv = A.groupby(["crop", "severity"]).size().reset_index(name="reports")
-        st.plotly_chart(px.bar(sv, x="crop", y="reports", color="severity", color_discrete_map=SEV_COLORS,
-                               category_orders={"severity": ["Low", "Moderate", "High"]}), use_container_width=True)
+        if not sev_ok:
+            st.info("Severity needs AI analysis. Click **🧠 Analyze reports with AI** at the top.")
+        sv = S_ai.groupby(["crop", "severity"]).size().reset_index(name="reports")
+        if sev_ok:
+            st.plotly_chart(px.bar(sv, x="crop", y="reports", color="severity", color_discrete_map=SEV_COLORS,
+                                   category_orders={"severity": ["Low", "Moderate", "High"]}), use_container_width=True)
         with st.expander("📖 What does severity mean?"):
             st.markdown("**Severity** is how serious the problem sounds, rated by the AI from the report: "
                         "**High** = act first (crop loss is likely or spreading), "
                         "**Moderate** = needs attention soon, **Low** = minor or early stage.")
     else:
-        st.info("These charts need AI analysis (category and severity).")
+        st.info("No reports to chart in the current filter.")
 
 with t_dx:
     st.subheader("🩺 What kind of problem is it? (specific diseases, pests and stresses)")
@@ -582,9 +599,9 @@ with t_dx:
 with t_prio:
     st.subheader("🚨 High-Severity Reports (newest first)")
     st.caption("These reports were rated High by the AI. Start here.")
-    hi = A[A["severity"] == "High"].sort_values("date", ascending=False) if ai_ok else A
+    hi = S_ai[S_ai["severity"] == "High"].sort_values("date", ascending=False)
     if hi.empty:
-        st.success("No high-severity reports in the current filter." if ai_ok else "Needs AI analysis.")
+        st.success("No high-severity reports in the current filter." if sev_ok else "Severity needs AI analysis. Click 🧠 Analyze reports with AI at the top.")
     else:
         st.dataframe(hi[["date", "location", "crop", "likely_issue", "category", "summary", "report"]], use_container_width=True, hide_index=True)
 
@@ -641,13 +658,17 @@ if st.button("🔎 Analyze Report"):
             st.error(f"❌ {result['error']}")
         else:
             st.success("Analysis complete!")
-            r_col1, r_col2, r_col3 = st.columns(3)
-            r_col1.metric("Category", result["category"])
-            r_col2.metric("Severity", result["severity"])
-            r_col3.metric("Keywords", result["keywords"] or "—")
-            st.markdown(f"**Summary:** {result['summary']}")
             _crop_arg = new_crop if new_crop != "(not sure)" else None
             _dx = diagnose(_crop_arg, new_report, category=result["category"])
+            _vague = _dx["key"] in ("unspecified", "unclassified")
+            if _vague:
+                # report too vague to identify: still show common symptoms, causes and prevention for the crop
+                _dx = general_guidance(_crop_arg or _infer_crop(new_report))
+            r_col1, r_col2, r_col3 = st.columns(3)
+            r_col1.metric("Category", result["category"])
+            r_col2.metric("Severity", "Insufficient data" if _vague else result["severity"])
+            r_col3.metric("Keywords", result["keywords"] or "—")
+            st.markdown(f"**Summary:** {result['summary']}")
             st.markdown(f"#### 🩺 Likely problem: {_dx['name']}  ·  *{_dx['type']}*")
             st.markdown(f"**What it is:** {_dx['agent']}\n\n**Symptoms:** {_dx['symptoms']}\n\n**Causes:** {_dx['causes']}\n\n"
                         f"**What to do now:** {_dx['treatment']}\n\n**Prevention:** {_dx['prevention']}")

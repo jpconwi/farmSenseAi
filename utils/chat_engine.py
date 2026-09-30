@@ -136,6 +136,12 @@ def _rank_lines(series, what, crop=None):
     return lines
 
 
+def ranked_inline(series, what="report"):
+    """'1st: Tago — 36 reports · 2nd: Bislig — 30 reports' (ties share a rank, zero-count items never listed)."""
+    rows = _ranked(series)
+    return " · ".join(f"{_ordinal(r)}: {name} — {_n_reports(n)}" for r, name, n in rows) or "No reports available."
+
+
 def _top_texts(sub, k):
     vc = sub["report"].astype(str).str.strip().value_counts().head(k)
     return [f'- "{t[:1].upper() + t[1:]}" — {_n_reports(int(n))}' for t, n in vc.items()]

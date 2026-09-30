@@ -210,7 +210,7 @@ KB = [
        "Irrigate right away and mulch to reduce evaporation.",
        "Water on schedule, drought-tolerant varieties."),
     _e("unspecified", "Unspecified crop health problem", "Other",
-       r"unhealthy", None,
+       r"unhealthy|not (very |so )?healthy|not (doing )?well|not good|\\bsick\\b|something wrong|has a problem|have a problem", None,
        "Not enough detail in the report.",
        "General poor plant health.",
        "Cannot tell from the description.",
@@ -306,6 +306,40 @@ def diagnose(crop, text, category=None):
     if category in GENERIC:
         return _generic(category)
     return FALLBACK
+
+
+def _first_sentence(text):
+    text = str(text).strip()
+    cut = re.search(r"(?<=[a-z\)])\.\s", text)
+    return text[:cut.start() + 1] if cut else text
+
+
+def general_guidance(crop=None):
+    """Symptoms / causes / prevention for a report that is too vague to identify (e.g. "my rice is not healthy").
+
+    Nothing is invented: it lists the common problems of that crop taken from this knowledge base, clearly labelled
+    as things to CHECK, not as a diagnosis. Without a crop it lists the general problem types instead.
+    """
+    if crop:
+        own = [e for e in KB if e["crops"] and crop in e["crops"]]
+        rest = [e for e in KB if not e["crops"] and e["key"] != "unspecified" and e["type"] != "Other"]
+        rows = [(e["name"], e["symptoms"], e["causes"], e["prevention"]) for e in (own + rest)[:6]]
+        title = f"Needs more detail (common {crop} problems to check)"
+    else:
+        rows = [(f"{c}: {v[0]}", v[2], v[3], v[5]) for c, v in GENERIC.items() if c != "Other"]
+        title = "Needs more detail (common crop problems to check)"
+    bullets = lambda i: "\n\n" + "\n".join(f"- **{r[0]}:** {_first_sentence(r[i])}" for r in rows)
+    what = crop.lower() if crop else "crop"
+    return dict(
+        key="unspecified", name=title, type="Other", crops=None,
+        agent=(f"The report does not say what is wrong with the {what}, so the exact problem cannot be identified. "
+               "Below are the common problems to check."),
+        symptoms="Common signs to look for:" + bullets(1),
+        causes="Possible causes (not confirmed for this report):" + bullets(2),
+        treatment=("Inspect the leaves, stems, roots and soil, then ask the farmer to describe: which part is affected, "
+                   "the colour or spots, insects seen, and when it started. Ask a technician to inspect the field."),
+        prevention="General prevention:" + bullets(3),
+    )
 
 
 def match_in_text(text, crop=None):
